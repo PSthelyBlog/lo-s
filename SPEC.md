@@ -36,6 +36,15 @@ design, not yet confirmed) or **Open**.
   removed.
 - **Proposed.** On disk a plugin is a directory with `plugin.toml`, which declares its commands,
   their parameters and each command's effect (read, write or destructive), and `commands.py`.
+- **Proposed.** A command written by a model lives in a plugin directory of its own, named
+  `plugin.verb`, whose manifest records the need it answers and which model wrote it. Removing it
+  is one deletion.
+- **Proposed.** Before the user is asked, the proposed code is read without being run. It must
+  define exactly the declared function, run nothing when imported, import only the standard
+  library, and use no dynamic code. The user is shown what its imports let it do.
+- **Proposed.** After installing, a new command must pass an acceptance check or it is removed:
+  lines the user accepted before still reach the same commands, and the need's own line reaches
+  the new one.
 - **Proposed.** A command moves through three stages: written by the teacher, decoded by the local
   model, then compiled to plain code once its decodes stop varying.
 
@@ -78,11 +87,15 @@ design, not yet confirmed) or **Open**.
 - The shell and its three dispatch steps (`los/shell.py`, started with `./lo-s`). The user's answer
   to each choice the model makes is recorded as a label, with the version of the command table it
   was made against. Lines nothing fits are queued in `state/needs.jsonl`.
-- Providers and role configuration (`los/models.py`, `los.toml`). Only the `dispatch` role is used.
+- Providers and role configuration (`los/models.py`, `los.toml`). The `dispatch` and `author` roles
+  are used.
+- `teach NUMBER` (`los/teach.py`): the author model writes a command for a queued need, the user
+  approves it, and the acceptance check decides whether it stays. `forget NUMBER` drops a need.
 - Three starter plugins, `fs`, `note` and `sys`, seven commands in all, written as plain code so
   that dispatch has something to run. They are not a decision about the day-one core.
-- Not built: the fetch, decode, execute loop; the teacher draining the queue; permissions beyond
-  each command's effect; any optimization.
+- Not built: the fetch, decode, execute loop; draining the queue without being asked; a sandbox
+  or enforced permissions for written commands; tests of what a written command does; one commit
+  per install; any optimization.
 
 ## Open
 

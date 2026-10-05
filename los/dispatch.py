@@ -30,13 +30,17 @@ class Choice:
     meta: dict              # timing and token counts from the provider
 
 
-def system_prompt(table):
-    """The instructions followed by the command table, sorted by name so position carries no hint."""
+def table_text(table):
+    """The command table, one row per command, sorted by name so position carries no hint."""
     rows = []
     for command in sorted(table.values(), key=lambda c: c.name):
         params = ", ".join(f"{name} ({hint})" if hint else name for name, hint in command.params.items())
         rows.append(f"{command.name} | {command.description} | {params}".rstrip(" |"))
-    return INSTRUCTIONS + "\n".join(rows)
+    return "\n".join(rows)
+
+
+def system_prompt(table):
+    return INSTRUCTIONS + table_text(table)
 
 
 def schema(table):

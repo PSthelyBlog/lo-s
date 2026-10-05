@@ -2,7 +2,8 @@
 
 A plugin is a directory holding `plugin.toml`, which declares its commands, and `commands.py`,
 which defines one function `do_<verb>` per command. Parameters arrive as keyword strings and the
-function returns the text to show.
+function returns the text to show. Several directories may add commands under one plugin name;
+a command written by a model lives in a directory of its own, so removing it is one deletion.
 """
 import dataclasses
 import hashlib
@@ -32,14 +33,16 @@ def load(directory):
     table = {}
     for manifest in sorted(pathlib.Path(directory).glob("*/plugin.toml")):
         spec = tomllib.loads(manifest.read_text())
-        module_spec = importlib.util.spec_from_file_location(f"los_plugin_{spec['name']}",
-                                                             manifest.parent / "commands.py")
+        module_spec = importlib.util.spec_from_file_location(
+            "los_plugin_" + manifest.parent.name.replace(".", "_"), manifest.parent / "commands.py")
         module = importlib.util.module_from_spec(module_spec)
         module_spec.loader.exec_module(module)
         for verb, entry in spec["commands"].items():
             name, effect = f"{spec['name']}.{verb}", entry.get("effect", "read")
             if effect not in EFFECTS:
                 raise ValueError(f"{name}: effect must be one of {', '.join(EFFECTS)}, not {effect!r}")
+            if name in table:
+                raise ValueError(f"{name} is defined twice, the second time in {manifest.parent}")
             table[name] = Command(name, entry["description"], dict(entry.get("params", {})), effect,
                                   getattr(module, f"do_{verb}"))
     return table
