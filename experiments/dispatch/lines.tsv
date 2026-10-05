@@ -1,0 +1,100 @@
+1	show me the biggest files in my downloads folder	fs.find
+2	find every pdf I haven't touched in a year	fs.find
+3	where did I put that file called budget-2025	fs.find
+4	any files over 2 gigs in ~/Videos?	fs.find
+5	look for old log files in /var/log, older than 30 days	fs.find
+6	locate all the .mkv files on this machine	fs.find
+7	what's eating all the space in my home directory	fs.usage
+8	how big is the node_modules folder here	fs.usage
+9	break down disk use under ~/Projects two levels deep	fs.usage
+10	size of ~/Pictures please	fs.usage
+11	which folders in /var are the largest	fs.usage
+12	how much room is my music collection taking up	fs.usage
+13	rename report.txt to report-final.txt	fs.move
+14	put notes.md into the archive folder	fs.move
+15	move ~/Downloads/invoice.pdf over to ~/Documents/taxes	fs.move
+16	call this folder old-site instead of site	fs.move
+17	shift the screenshots directory onto the external drive at /mnt/usb	fs.move
+18	change the name of draft1.docx to proposal.docx	fs.move
+19	what's running right now	proc.list
+20	show me the processes using the most memory	proc.list
+21	is firefox running?	proc.list
+22	list everything sorted by cpu	proc.list
+23	which programs are hogging the cpu	proc.list
+24	show all python processes	proc.list
+25	kill whatever is using port 3000	proc.kill
+26	stop firefox, it's frozen	proc.kill
+27	terminate process 48213	proc.kill
+28	get rid of that stuck node server	proc.kill
+29	shut down the thing listening on 8080	proc.kill
+30	force quit slack	proc.kill
+31	download https://example.com/data.csv	net.fetch
+32	grab the file at https://example.org/setup.sh and save it as install.sh	net.fetch
+33	pull down https://example.com/logo.png into ~/Pictures	net.fetch
+34	save a copy of https://example.net/report.pdf locally	net.fetch
+35	get me https://example.com/archive.tar.gz	net.fetch
+36	fetch the ubuntu iso from https://example.com/ubuntu.iso	net.fetch
+37	is github.com up?	net.ping
+38	can I reach 192.168.1.1	net.ping
+39	check if my server at example.com is alive	net.ping
+40	am I online?	net.ping
+41	see whether the printer at 10.0.0.42 responds	net.ping
+42	test the connection to cloudflare.com	net.ping
+43	remind me in 20 minutes to check the oven	remind.add
+44	tomorrow at 9 tell me to call the dentist	remind.add
+45	don't let me forget the standup at 14:30	remind.add
+46	ping me friday afternoon about the tax form	remind.add
+47	set a reminder for next monday: renew passport	remind.add
+48	nudge me in two hours to stretch	remind.add
+49	note: the wifi password is on the fridge	note.add
+50	jot down that the meeting moved to room 4	note.add
+51	save this idea under work: cache dispatch results	note.add
+52	write down 'buy oat milk'	note.add
+53	keep a note that the landlord's number is 555-0142	note.add
+54	remember that the spare key is with Dana	note.add
+55	how much battery do I have left	power.battery
+56	is the cpu overheating?	sys.status
+57	how much ram is free	sys.status
+58	give me a quick health check of the machine	sys.status
+59	what's the cpu load like	sys.status
+60	laptop feels hot, what's the temperature	sys.status
+61	what's in this folder	fs.list
+62	make a backup copy of config.yaml called config.yaml.bak	fs.copy
+63	delete the tmp directory	fs.delete
+64	which files mention 'TODO' in src	fs.search
+65	zip up the photos folder	fs.archive
+66	unpack archive.tar.gz here	fs.extract
+67	are there duplicate photos in ~/Pictures	fs.dedupe
+68	what's listening on port 5432	proc.ports
+69	how fast is my internet	net.speed
+70	what's my ip address	net.ip
+71	what reminders do I have	remind.list
+72	turn the volume down to 30	sys.volume
+73	what's 18% of 2450	calc.eval
+74	how many kilometres is 26.2 miles	calc.convert
+75	start a 10 minute timer for tea	time.timer
+76	what's the weather like tomorrow	weather.forecast
+77	shrink photo.jpg to 800 pixels wide	img.resize
+78	merge a.pdf and b.pdf into one file	pdf.merge
+79	what does 'ephemeral' mean	dict.define
+80	add 'call the plumber' to my todo list	todo.add
+81	how much free space is left on the disk	disk.free
+82	take a screenshot of the whole screen	shot.screen
+83	what's on my calendar today	cal.list
+84	show the last 50 lines of the system log	log.tail
+85	is the docker container web still running	docker.ps
+86	write me a poem about my cat	none
+87	order a large pizza	none
+88	book a flight to Lisbon for next week	none
+89	turn on the kitchen lights	none
+90	call mom	none
+91	print this page double sided	none
+92	scan a document from the scanner	none
+93	play chess with me	none
+94	what did I work on yesterday	none
+95	make me a logo for my bakery	none
+96	how do I exit vim	none
+97	summarize the news	none
+98	transcribe meeting.mp3	none
+99	pair my watch with my phone	none
+100	teach me spanish	none

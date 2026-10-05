@@ -1,0 +1,10 @@
+# llama.cpp build and models; scripts/setup-runtime.sh recreates them
+runtime/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+
+# Server and run logs
+*.log

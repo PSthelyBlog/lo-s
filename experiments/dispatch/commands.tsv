@@ -1,0 +1,200 @@
+fs.find	Find files by name, size or age	path, name, larger_than, older_than
+fs.usage	Show how much space a directory and its subdirectories use	path, depth
+fs.move	Move or rename a file or directory	source, dest
+proc.list	List running processes	sort_by, filter
+proc.kill	Stop a running process by name, process id or the port it listens on	target
+net.fetch	Download a URL to a file	url, output
+net.ping	Check whether a host is reachable	host
+remind.add	Schedule a reminder message for a later time	when, text
+note.add	Save a short text note	text, tag
+sys.status	Show battery, CPU, memory or temperature status	what
+fs.list	List the contents of a directory	path, sort_by
+fs.copy	Copy a file or directory	source, dest
+fs.delete	Delete a file or directory	path
+fs.read	Print the contents of a text file	path, lines
+fs.search	Search for text inside files	path, text
+fs.archive	Pack files into a zip or tar archive	source, dest
+fs.extract	Unpack a zip or tar archive	source, dest
+fs.perms	Change who can read, write or run a file	path, mode
+fs.dedupe	Find duplicate files	path
+fs.watch	Run a command when files change	path, command
+proc.info	Show details of one process	target
+proc.ports	Show which processes listen on which ports	port
+proc.nice	Change the priority of a process	target, priority
+net.speed	Measure download and upload speed
+net.dns	Look up the address of a host name	host
+net.ip	Show this machine's network addresses
+net.wifi	List or join wifi networks	action, network
+remind.list	List scheduled reminders
+remind.cancel	Cancel a scheduled reminder	id
+note.list	List saved notes	tag
+note.search	Search saved notes for text	text
+note.delete	Delete a saved note	id
+sys.update	Install system updates
+sys.reboot	Restart the machine
+sys.sleep	Suspend the machine
+sys.volume	Set or show the sound volume	level
+sys.brightness	Set or show the screen brightness	level
+sys.bluetooth	Turn bluetooth on or off, or connect a device to this machine	action, device
+clip.copy	Put text on the clipboard	text
+clip.history	Show recent clipboard entries	count
+calc.eval	Evaluate an arithmetic expression	expression
+calc.convert	Convert a value between units or currencies	value, from, to
+time.now	Show the current date and time	zone
+time.timer	Start a countdown timer	duration, label
+time.zone	Convert a time between time zones	time, from, to
+pkg.install	Install a software package	name
+pkg.remove	Remove a software package	name
+pkg.search	Search for a software package	query
+git.status	Show changed files in a git repository	path
+git.log	Show recent commits in a git repository	path, count
+git.diff	Show uncommitted changes in a git repository	path
+git.commit	Record staged changes as a commit	message
+git.branch	Create, list or switch branches	action, name
+git.clone	Copy a remote git repository to this machine	url, dest
+git.stash	Set uncommitted changes aside	action
+text.count	Count lines, words or characters in a file	path, unit
+text.sort	Sort the lines of a file	path, order
+text.replace	Replace text in a file	path, find, replace
+text.head	Show the first or last lines of a file	path, lines, end
+text.diff	Compare two text files line by line	left, right
+img.resize	Change the pixel dimensions of an image	path, width, height
+img.convert	Convert an image to another format	path, format
+img.info	Show the dimensions and metadata of an image	path
+img.crop	Cut an image down to a region	path, region
+img.compress	Reduce the file size of an image	path, quality
+pdf.merge	Join several PDF files into one	inputs, output
+pdf.split	Split a PDF into separate files by page range	path, pages
+pdf.text	Extract the text of a PDF	path
+pdf.pages	Count the pages of a PDF	path
+pdf.compress	Reduce the file size of a PDF	path
+audio.play	Play an audio file or resume playback	path
+audio.pause	Pause audio playback
+audio.next	Skip to the next track
+audio.record	Record audio from the microphone	output, duration
+audio.convert	Convert an audio file to another format	path, format
+video.convert	Convert a video file to another format	path, format
+video.trim	Cut a video to a start and end time	path, start, end
+video.info	Show the duration, resolution and codecs of a video	path
+video.gif	Turn a video clip into an animated GIF	path, start, end
+video.audio	Extract the audio track of a video	path, output
+mail.send	Send an email	to, subject, body
+mail.list	List recent emails	folder, count
+mail.search	Search emails for text or sender	query
+mail.read	Show one email	id
+mail.archive	Archive an email	id
+cal.add	Add an event to the calendar	when, title, duration
+cal.list	List calendar events for a day or range	when
+cal.next	Show the next calendar event
+cal.delete	Remove a calendar event	id
+cal.free	Find free time slots in the calendar	when, duration
+weather.now	Show current weather conditions	place
+weather.forecast	Show the weather forecast for coming days	place, days
+weather.alerts	Show active weather warnings	place
+weather.sun	Show sunrise and sunset times	place, date
+weather.air	Show air quality	place
+dict.define	Look up the meaning of a word	word
+dict.translate	Translate a word or phrase to another language	text, to
+dict.synonyms	List words with a similar meaning	word
+dict.spell	Check the spelling of a word	word
+dict.say	Speak a word aloud to hear its pronunciation	word
+json.query	Extract values from a JSON file with a path expression	path, expr
+json.format	Pretty-print a JSON file	path
+json.validate	Check that a file is valid JSON	path
+json.diff	Compare two JSON files	left, right
+json.csv	Convert a JSON array to CSV	path, output
+csv.head	Show the first rows of a CSV file	path, rows
+csv.filter	Keep CSV rows that match a condition	path, where
+csv.stats	Show summary statistics for CSV columns	path, columns
+csv.sort	Sort a CSV file by a column	path, by
+csv.join	Join two CSV files on a shared column	left, right, on
+db.query	Run a SQL query against a database	database, sql
+db.tables	List the tables of a database	database
+db.export	Export a database table to a file	database, table, output
+db.import	Load a file into a database table	database, table, path
+db.backup	Write a backup copy of a database	database, output
+ssh.connect	Open a shell on a remote machine	host
+ssh.copy	Copy files to or from a remote machine	source, dest
+ssh.hosts	List saved remote machines
+ssh.keygen	Create a new SSH key pair	name
+ssh.tunnel	Forward a local port to a remote machine	host, local, remote
+docker.ps	List containers and whether they are running	filter
+docker.logs	Show the output of a container	name, lines
+docker.stop	Stop a running container	name
+docker.run	Start a container from an image	image, name
+docker.images	List container images on this machine
+svc.start	Start a system service	name
+svc.stop	Stop a system service	name
+svc.status	Show whether a system service is running	name
+svc.logs	Show the log output of a system service	name, lines
+svc.enable	Make a system service start at boot	name
+cron.add	Schedule a command to run repeatedly	schedule, command
+cron.list	List scheduled commands
+cron.remove	Remove a scheduled command	id
+cron.next	Show when scheduled commands will next run
+cron.log	Show the results of past scheduled runs	id
+env.get	Show the value of an environment variable	name
+env.set	Set an environment variable	name, value
+env.list	List environment variables	filter
+env.unset	Remove an environment variable	name
+env.path	Show or edit the program search path	action, dir
+hash.sum	Compute the checksum of a file	path, algorithm
+hash.verify	Check a file against an expected checksum	path, expected
+crypt.encrypt	Encrypt a file with a password or key	path, key
+crypt.decrypt	Decrypt an encrypted file	path, key
+crypt.sign	Sign a file so others can verify it	path, key
+pass.get	Copy a stored password to the clipboard	name
+pass.add	Store a password	name
+pass.generate	Generate a random password	length
+pass.list	List stored password entries
+pass.remove	Delete a stored password	name
+shot.screen	Capture the whole screen as an image	output
+shot.region	Capture a selected region of the screen	output
+shot.window	Capture one window	output
+shot.record	Record the screen as a video	output, duration
+shot.ocr	Read the text in a region of the screen
+display.list	List connected displays and their resolutions
+display.arrange	Set the position of displays relative to each other	layout
+display.scale	Set the scaling factor of a display	display, factor
+display.night	Turn the warm night colour filter on or off	action
+display.mirror	Show the same picture on two displays	source, target
+power.battery	Show battery charge, health and time remaining
+power.profile	Switch between power saving, balanced and performance	profile
+power.lid	Set what happens when the laptop lid closes	action
+power.wake	Schedule the machine to wake at a time	when
+power.history	Show battery drain over recent hours	hours
+disk.list	List drives and partitions
+disk.free	Show free and used space on each drive
+disk.mount	Attach a drive or partition to a directory	device, path
+disk.unmount	Detach a drive safely	device
+disk.health	Show the wear and error status of a drive	device
+backup.run	Back up a directory to the backup store	path
+backup.list	List existing backups	path
+backup.restore	Restore files from a backup	backup, path
+backup.verify	Check that a backup is intact	backup
+backup.prune	Delete old backups by age	older_than
+http.get	Request a URL and print the response	url
+http.post	Send data to a URL	url, data
+http.headers	Show the response headers of a URL	url
+http.serve	Serve a directory over HTTP on this machine	path, port
+http.status	Show the status code a URL returns	url
+web.search	Search the web and list results	query
+web.open	Open a URL in the browser	url
+mark.add	Bookmark a URL	url, title
+mark.list	List bookmarks	tag
+mark.search	Search bookmarks	query
+todo.add	Add a task to the to-do list	text, due
+todo.list	List open tasks
+todo.done	Mark a task as finished	id
+todo.remove	Delete a task	id
+todo.due	List tasks due on a day	when
+win.list	List open windows
+win.focus	Bring a window to the front	title
+win.close	Close a window	title
+win.move	Move a window to a position or display	title, target
+win.space	Send a window to a workspace	title, workspace
+log.tail	Show the latest lines of the system log	lines
+log.search	Search the system log for text	text, since
+log.errors	Show recent errors from the system log	since
+log.boot	Show messages from the last boot
+log.clear	Delete old system log entries	older_than
