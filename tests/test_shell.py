@@ -47,7 +47,7 @@ class ShellTest(StateCase):
         self.assertEqual(self.ran, [])
         self.assertIn("[y/N]", self.asked[0])
         self.assertEqual(self.shown[-1], "Not run.")
-        self.assertEqual(state.read("labels")[0]["verdict"], "rejected")
+        self.assertEqual(state.read("labels")[0]["verdict"], "declined")
         self.assertEqual(state.read("needs"), [])
 
     def test_a_rejected_choice_can_be_queued_as_a_need(self):
@@ -90,6 +90,6 @@ class ShellTest(StateCase):
         shell.handle("help")
         self.assertIn("fs.move", self.shown[0])
         shell.handle("help fs.move nope")
-        self.assertIn("--source", self.shown[-2])
+        self.assertEqual(self.shown[-2], "  --source  \n  --dest    ")       # hints line up in a column
         self.assertEqual(self.shown[-1], "There is no command named nope.")
         self.assertEqual(self.model.calls, 0)

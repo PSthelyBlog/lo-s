@@ -23,17 +23,33 @@ lo-s> rename report.txt to report-final.txt
 → fs.move --source report.txt --dest report-final.txt
 Run it? [y/N] y
 Moved report.txt to report-final.txt
-lo-s> order a large pizza
+lo-s> make a backup copy of config.yaml
 Nothing here does that yet. Queued as a new need (1 waiting).
+lo-s> teach 1
+Asking claude-opus-5-5 to write a command for: make a backup copy of config.yaml
+fs.copy  Copy a file or directory, or make a backup copy next to the original ...  (effect: write)
+...
+Install fs.copy? [y/N] y
+Checking it against 2 line(s) you accepted before, and the need itself.
+Installed fs.copy in plugins/fs.copy. Delete that folder to remove it.
+lo-s> make a backup copy of config.yaml
+→ fs.copy --source config.yaml
+Run it? [y/N] y
+Copied config.yaml to config.yaml.bak
 ```
+
+The transcript is shortened; paths in the real output are absolute.
 
 - **Structured commands** have the form `plugin.verb --param value` and run directly. No model is
   involved, so they work with nothing else installed.
 - **Plain language** goes to a local model, which picks a command. The shell shows that command in
   typed form and asks before running it. Enter accepts a command that only reads; one that changes
   anything needs an explicit yes.
-- **Anything no command fits** is queued as a need. The plan is for a stronger "teacher" model to
-  write a new command for it; today the queue is only recorded.
+- **Anything no command fits** is queued as a need. `needs` lists them.
+- **`teach NUMBER`** asks a stronger "teacher" model to write a command for a queued need. You see
+  the whole proposal, code included, and nothing is installed unless you agree. The new command
+  is then checked: the lines you accepted before must still reach the same commands, and the
+  need's own line must reach the new one. If not, it is removed again.
 - There are seven starter commands, in the `fs`, `note` and `sys` plugins. `help` lists them.
 
 ## What the experiment found
@@ -76,6 +92,9 @@ experiment. Nothing is installed outside the `runtime/` folder; delete it to und
 lo-s runs commands on your real machine.
 
 - A command chosen by a model is always shown first and never runs without your agreement.
+- A command written by a model is shown in full before it is installed, with what its imports let
+  it do. Its code is read for a few things it must not contain, but there is no sandbox: once you
+  agree, it runs with your permissions. Read it first.
 - `fs.move` is the only starter command that changes files, and it refuses to overwrite.
 - Local models make mistakes. In the experiment, one turned "what's listening on port 5432" into a
   command that would have stopped the process. Read the command before you agree to it.

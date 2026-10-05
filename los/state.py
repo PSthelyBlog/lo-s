@@ -17,6 +17,10 @@ def append(name, record):
         out.write(json.dumps(record) + "\n")
 
 
+def replace(name, records):
+    (directory() / f"{name}.jsonl").write_text("".join(json.dumps(record) + "\n" for record in records))
+
+
 def read(name):
     path = directory() / f"{name}.jsonl"
     return [json.loads(row) for row in path.read_text().splitlines()] if path.exists() else []
