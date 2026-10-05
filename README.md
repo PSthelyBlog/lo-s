@@ -1,22 +1,96 @@
 # lo-s
 
-A command-line operating system on an emulated machine whose processor is a language model.
-`SPEC.md` describes the design and marks what is decided, proposed and open.
+lo-s is an experiment in building a command-line operating system on an emulated machine whose
+processor is a language model. You type commands, a small core dispatches them to plugins, and
+the system is meant to grow a new plugin when you ask for something it cannot do yet.
 
-## Try the shell
+**Status: early and experimental.** What exists today is the shell's first step, turning a typed
+line into a command, and one experiment measuring how well a local model does that. The rest of
+the design is in [SPEC.md](SPEC.md), where every item is marked decided, proposed or open.
 
-Needs Linux, Python 3.11 or later and, for the local model, an NVIDIA GPU.
+## What works today
 
 ```
-scripts/setup-runtime.sh                              # once: llama.cpp build and models, about 20 GB
-scripts/serve.sh gemma-4-26B-A4B-it-qat-q4_0.gguf     # in another terminal: the local model
+lo-s> fs.usage --path . --depth 1
+   19.6G  .  (total)
+   19.5G  ./runtime
+    3.2M  ./experiments
+lo-s> how much ram is free
+→ sys.status --what memory
+Run it? [Y/n]
+Memory: 25.2 GB available of 30.8 GB
+lo-s> rename report.txt to report-final.txt
+→ fs.move --source report.txt --dest report-final.txt
+Run it? [y/N] y
+Moved report.txt to report-final.txt
+lo-s> order a large pizza
+Nothing here does that yet. Queued as a new need (1 waiting).
+```
+
+- **Structured commands** have the form `plugin.verb --param value` and run directly. No model is
+  involved, so they work with nothing else installed.
+- **Plain language** goes to a local model, which picks a command. The shell shows that command in
+  typed form and asks before running it. Enter accepts a command that only reads; one that changes
+  anything needs an explicit yes.
+- **Anything no command fits** is queued as a need. The plan is for a stronger "teacher" model to
+  write a new command for it; today the queue is only recorded.
+- There are seven starter commands, in the `fs`, `note` and `sys` plugins. `help` lists them.
+
+## What the experiment found
+
+One hundred plain-language lines were mapped to commands by a local model and by Claude Opus 5.5
+as the reference, with command tables of 10, 50 and 200 entries.
+
+- Gemma 4 26B-A4B chose the same command as the reference on 91% to 95% of lines, and did not get
+  worse as the table grew. An 8B model fell to 57% at 200 commands.
+- Gemma's file is 14.4 GB, but about 90% of it is expert weights that can stay in system RAM. On an
+  8 GB laptop GPU it produced 32 to 40 tokens per second.
+
+This is a first measurement on one machine, with lines written by the same author as the
+commands. It is not a benchmark. Method, numbers and every recorded answer are in
+[experiments/dispatch](experiments/dispatch/README.md).
+
+## Try it
+
+You need Linux and Python 3.11 or later. Nothing beyond the standard library is used.
+
+```
+git clone https://github.com/PSthelyBlog/lo-s.git
+cd lo-s
 ./lo-s
 ```
 
-Type a structured command such as `fs.usage --path ~ --depth 2`, or plain language such as
-"what's eating all the space in my home directory". The shell shows which command it understood
-and asks before running it. `help` lists the commands. Structured commands work without the model
-running.
+That is enough for structured commands. For plain language you also need the local model, which
+was tested on an NVIDIA GPU with 8 GB of memory, a recent driver and 30 GB of system RAM:
+
+```
+scripts/setup-runtime.sh llama big                    # llama.cpp build and Gemma, about 15 GB, into runtime/
+scripts/serve.sh gemma-4-26B-A4B-it-qat-q4_0.gguf     # leave running in another terminal
+```
+
+`scripts/setup-runtime.sh` with no arguments also fetches the smaller model used in the
+experiment. Nothing is installed outside the `runtime/` folder; delete it to undo.
+
+## Safety
+
+lo-s runs commands on your real machine.
+
+- A command chosen by a model is always shown first and never runs without your agreement.
+- `fs.move` is the only starter command that changes files, and it refuses to overwrite.
+- Local models make mistakes. In the experiment, one turned "what's listening on port 5432" into a
+  command that would have stopped the process. Read the command before you agree to it.
+
+## Models and providers
+
+Any provider can fill any role; `los.toml` says which does what. There are two kinds:
+
+- `openai`: any server with the OpenAI chat API, such as llama.cpp's `llama-server`.
+- `claude-cli`: runs your own installed `claude` program. lo-s never reads, stores or sends that
+  login. You sign in with Anthropic yourself, and your use is subject to their terms.
+
+The setup script downloads software and models that come with their own licences and are not part
+of this repository: llama.cpp (MIT), NVIDIA's CUDA runtime libraries (NVIDIA's licence), Gemma 4
+(Apache 2.0 according to its model card) and LFM2.5 (LFM Open License v1.0).
 
 ## Layout
 
@@ -26,3 +100,7 @@ running.
 - `experiments/dispatch/`: the dispatch experiment and its results
 - `scripts/`: runtime setup and measurements
 - `tests/`: run with `python3 -m unittest discover -s tests -t .`
+
+## Licence
+
+MIT. See [LICENCE](LICENCE).
