@@ -18,11 +18,13 @@ design, not yet confirmed) or **Open**.
 ## The shell
 
 - **Decided.** The user types structured commands, with plain language as the fallback.
-- **Proposed.** A command is named `plugin.verb` and takes named parameters.
+- **Proposed.** A command is named `plugin.verb` and takes named parameters, typed as
+  `plugin.verb --param value`.
 - **Proposed.** Dispatch has three steps:
   1. The line parses as a known command: run it. No model is called.
   2. Otherwise the local model maps it to a known command, and the shell shows the structured form
-     before running it.
+     and asks before running it. Enter accepts a command that only reads; one that changes anything
+     needs an explicit yes.
   3. Nothing fits: the need goes into a queue and the user is told.
 
 ## Plugins
@@ -32,6 +34,8 @@ design, not yet confirmed) or **Open**.
 - **Proposed.** A plugin bundles commands, syscalls, a permission list, recorded traces with checks,
   and the compiled rules it accumulates. It is the unit that is installed, trusted, optimized and
   removed.
+- **Proposed.** On disk a plugin is a directory with `plugin.toml`, which declares its commands,
+  their parameters and each command's effect (read, write or destructive), and `commands.py`.
 - **Proposed.** A command moves through three stages: written by the teacher, decoded by the local
   model, then compiled to plain code once its decodes stop varying.
 
@@ -44,7 +48,7 @@ design, not yet confirmed) or **Open**.
 - **Proposed.** Five roles, each assigned to a provider in configuration: `dispatch`, `decode`,
   `label`, `author`, `propose`.
 - **Proposed.** One contract for all providers: a prompt and a JSON schema go in, JSON that validates
-  comes out. The core validates and retries. See `experiments/dispatch/adapters.py`.
+  comes out. The core validates and retries. See `los/models.py`.
 - **Proposed.** Claude is reached only by running the user's own unmodified `claude` program. lo-s
   never reads, stores or sends that login.
 - **Proposed.** Every label records its provider, model and date, and is asked for once, then
@@ -68,6 +72,17 @@ design, not yet confirmed) or **Open**.
 - **Proposed.** Destructive syscalls ask for confirmation or run as a dry run first.
 - **Proposed.** The optimizer can never widen a permission. Acceptance stays in the core, even if
   authoring becomes a plugin.
+
+## Built so far
+
+- The shell and its three dispatch steps (`los/shell.py`, started with `./lo-s`). The user's answer
+  to each choice the model makes is recorded as a label, with the version of the command table it
+  was made against. Lines nothing fits are queued in `state/needs.jsonl`.
+- Providers and role configuration (`los/models.py`, `los.toml`). Only the `dispatch` role is used.
+- Three starter plugins, `fs`, `note` and `sys`, seven commands in all, written as plain code so
+  that dispatch has something to run. They are not a decision about the day-one core.
+- Not built: the fetch, decode, execute loop; the teacher draining the queue; permissions beyond
+  each command's effect; any optimization.
 
 ## Open
 

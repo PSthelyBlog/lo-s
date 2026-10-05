@@ -1,0 +1,29 @@
+name = "fs"
+description = "Files and directories"
+
+[commands.list]
+description = "List the contents of a directory"
+[commands.list.params]
+path = "directory, default the current one"
+sort_by = "name, size or time"
+
+[commands.find]
+description = "Find files by name, size or age"
+[commands.find.params]
+path = "directory to search, default the current one"
+name = "file name or pattern such as *.pdf"
+larger_than = "size such as 100M or 2G"
+older_than = "age such as 30 days or 1 year"
+
+[commands.usage]
+description = "Show how much space a directory and its subdirectories use"
+[commands.usage.params]
+path = "directory, default the current one"
+depth = "levels of subdirectories to show, default 1"
+
+[commands.move]
+description = "Move or rename a file or directory"
+effect = "destructive"
+[commands.move.params]
+source = "what to move"
+dest = "new name, or the directory to move it into"

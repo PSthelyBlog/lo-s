@@ -1,6 +1,9 @@
 # llama.cpp build and models; scripts/setup-runtime.sh recreates them
 runtime/
 
+# What the shell records as it runs: needs, labels, notes
+state/
+
 # Python
 __pycache__/
 *.pyc

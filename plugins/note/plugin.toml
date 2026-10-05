@@ -1,0 +1,14 @@
+name = "note"
+description = "Short text notes"
+
+[commands.add]
+description = "Save a short text note"
+effect = "write"
+[commands.add.params]
+text = "the note"
+tag = "one word to file it under"
+
+[commands.list]
+description = "List saved notes"
+[commands.list.params]
+tag = "only notes filed under this word"

@@ -15,8 +15,8 @@ import time
 import urllib.request
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
-sys.path.insert(0, str(ROOT / "experiments" / "dispatch"))
-from adapters import OpenAICompat  # noqa: E402
+sys.path[:0] = [str(ROOT), str(ROOT / "experiments" / "dispatch")]
+from los.models import OpenAICompat  # noqa: E402
 from dispatch import load_commands, load_lines, output_schema, system_prompt  # noqa: E402
 
 URL = "http://127.0.0.1:8080"

@@ -1,0 +1,7 @@
+name = "sys"
+description = "The machine itself"
+
+[commands.status]
+description = "Show battery, CPU, memory or temperature status"
+[commands.status.params]
+what = "battery, cpu, memory or temperature; default all"

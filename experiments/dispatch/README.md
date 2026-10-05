@@ -24,6 +24,7 @@ experiments/dispatch/dispatch.py claude-cli teacher-opus-5-5 --workers 4
 experiments/dispatch/run-student.sh TAG MODEL.gguf [llama-server arguments]
 experiments/dispatch/score.py teacher-opus-5-5 TAG
 scripts/placement-sweep.py MODEL.gguf 30 22 auto           # speed against expert layers kept in RAM
+experiments/dispatch/replay-shell.py TAG                   # the shell's own dispatcher, server running
 ```
 
 ## Results, 2026-10-05
@@ -125,6 +126,23 @@ Measured with `scripts/placement-sweep.py`, 200-command table:
 
 With every expert in RAM the model needs 2.7 GB of VRAM and still produces 32 tokens per second.
 Filling the rest of the GPU with expert layers adds about 30%.
+
+### The shell's dispatcher, replayed (Gemma 4 26B-A4B)
+
+`los/dispatch.py` uses the same instructions with a stricter schema: each command only accepts its
+own parameter names. `replay-shell.py` ran it over the same lines and tables:
+
+| Commands in table | 10 | 50 | 200 |
+|---|---|---|---|
+| Same command as teacher | 91% | 95% | 94% |
+| Teacher said none: student ran a command | 8% | 4% | 0% |
+| Same command: same parameter names | 98% | 94% | 92% |
+| Same command: same parameter names and values | 80% | 85% | 82% |
+
+Against the looser schema above, command agreement is unchanged within one line per table,
+parameter names improved (from 95%, 92% and 86%), and it ran a command the teacher would not have
+less often (from 13%, 8% and 0%). It answered `none` a little more often at 10 commands (6 lines
+where the teacher picked a command, up from 3).
 
 ## Caveats
 

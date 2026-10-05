@@ -1,0 +1,13 @@
+# Which provider fills which role. Any provider can fill any role.
+
+[roles]
+dispatch = "local"          # reads plain-language lines; runs on every one, so keep it local
+
+[providers.local]
+kind = "openai"             # any server with the OpenAI chat API; start this one with scripts/serve.sh
+url = "http://127.0.0.1:8080/v1"
+model = "gemma-4-26B-A4B-it-qat-q4_0.gguf"
+
+[providers.claude]
+kind = "claude-cli"         # your own `claude` program and login
+model = "claude-opus-5-5"

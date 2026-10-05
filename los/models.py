@@ -1,14 +1,20 @@
-"""Model adapters.
+"""Model providers.
 
 One contract for every provider: a system prompt, a user message and a JSON schema go in,
 and a dict comes out. `complete_valid` checks the dict against the schema and retries, so
 nothing here relies on a provider guaranteeing the shape of its output.
 """
 import json
+import shutil
 import subprocess
 import tempfile
 import time
+import urllib.error
 import urllib.request
+
+
+class ModelUnavailable(Exception):
+    """The provider could not be reached at all, as opposed to answering badly."""
 
 
 class ClaudeCli:
@@ -22,6 +28,8 @@ class ClaudeCli:
         self.cwd = tempfile.mkdtemp(prefix="los-claude-")
 
     def complete(self, system, user, schema):
+        if not shutil.which("claude"):
+            raise ModelUnavailable("the claude program is not installed")
         cmd = ["claude", "-p", "--safe-mode", "--model", self.model, "--effort", self.effort,
                "--tools", "", "--no-session-persistence", "--output-format", "json",
                "--system-prompt", system, "--json-schema", json.dumps(schema)]
@@ -58,8 +66,13 @@ class OpenAICompat:
         request = urllib.request.Request(self.base_url + "/chat/completions", json.dumps(body).encode(),
                                          {"Content-Type": "application/json"})
         start = time.time()
-        with urllib.request.urlopen(request, timeout=900) as response:
-            reply = json.load(response)
+        try:
+            with urllib.request.urlopen(request, timeout=900) as response:
+                reply = json.load(response)
+        except urllib.error.HTTPError as error:  # the server answered, and refused the request
+            raise RuntimeError(f"{error.code} from {self.base_url}: {error.read().decode(errors='replace')[:300]}")
+        except (urllib.error.URLError, ConnectionError, TimeoutError) as error:
+            raise ModelUnavailable(f"no answer from {self.base_url} ({getattr(error, 'reason', error)})")
         timings = reply.get("timings", {})
         return json.loads(reply["choices"][0]["message"]["content"]), {
             "seconds": round(time.time() - start, 2),
@@ -71,8 +84,24 @@ class OpenAICompat:
         }
 
 
+def provider(settings):
+    """Build a provider from one [providers.NAME] table of los.toml."""
+    kind = settings["kind"]
+    if kind == "openai":
+        return OpenAICompat(settings["url"], settings["model"], settings.get("extra"))
+    if kind == "claude-cli":
+        return ClaudeCli(settings.get("model", "claude-opus-5-5"), settings.get("effort", "medium"))
+    raise ValueError(f"unknown provider kind {kind!r}")
+
+
 def validate(value, schema, path="$"):
     """Check a value against the subset of JSON Schema this project uses. Returns the problems found."""
+    if "anyOf" in schema:
+        if any(not validate(value, option, path) for option in schema["anyOf"]):
+            return []
+        return [f"{path}: matches none of the allowed forms"]
+    if "const" in schema:
+        return [] if value == schema["const"] else [f"{path}: expected {schema['const']!r}"]
     kind = schema.get("type")
     if kind == "object":
         if not isinstance(value, dict):
@@ -103,6 +132,8 @@ def complete_valid(model, system, user, schema, tries=3):
     for attempt in range(1, tries + 1):
         try:
             output, meta = model.complete(system, user, schema)
+        except ModelUnavailable:
+            raise
         except Exception as error:  # a failed call counts as a failed try
             problems = [f"{type(error).__name__}: {error}"]
             continue

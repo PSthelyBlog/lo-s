@@ -14,12 +14,13 @@ import argparse
 import datetime
 import json
 import pathlib
+import sys
 import threading
 from concurrent.futures import ThreadPoolExecutor
 
-from adapters import ClaudeCli, OpenAICompat, complete_valid
-
-HERE = pathlib.Path(__file__).parent
+HERE = pathlib.Path(__file__).resolve().parent
+sys.path.insert(0, str(HERE.parent.parent))
+from los.models import ClaudeCli, OpenAICompat, complete_valid  # noqa: E402
 RESULTS = HERE / "results"
 
 INSTRUCTIONS = """\
