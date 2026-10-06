@@ -134,7 +134,9 @@ class Shell:
             return
         latest = [cycle for cycle in cycles if cycle["run"] == cycles[-1]["run"]]
         total = sum(cycle["seconds"] or 0 for cycle in latest)
-        self.out(f"{latest[0]['program']}: {len(latest)} cycle(s), {total:.1f} s in the decoder")
+        recalled = sum(cycle.get("how") == "memory" for cycle in latest)
+        self.out(f"{latest[0]['program']}: {len(latest)} cycle(s), {total:.1f} s in the decoder" +
+                 (f", {recalled} from memory" if recalled else ""))
         for cycle in latest:
             op = cycle["micro_op"]
             if op["op"] == "call":
@@ -143,7 +145,8 @@ class Shell:
                 did = f"set {op['register']} = {op['value']}"
             else:
                 did = "halt"
-            self.out(f"{cycle['step']}. {cycle['instruction']}\n   {did}  ({cycle['seconds'] or 0:.2f} s)")
+            took = "remembered" if cycle.get("how") == "memory" else f"{cycle['seconds'] or 0:.2f} s"
+            self.out(f"{cycle['step']}. {cycle['instruction']}\n   {did}  ({took})")
 
     def stats(self):
         log = state.read("dispatches")
@@ -152,6 +155,13 @@ class Shell:
         self.out(f"Plain-language lines: {len(log)}\n"
                  f"Answered by the model: {len(asked)}, taking {sum(asked):.1f} s\n"
                  f"Answered from memory: {len(recalled)}, saving about {sum(recalled):.1f} s")
+        cycles = state.read("cycles")
+        if cycles:
+            decoded = [cycle["seconds"] or 0 for cycle in cycles if cycle.get("how") != "memory"]
+            recalled = [cycle.get("saved") or 0 for cycle in cycles if cycle.get("how") == "memory"]
+            self.out(f"Program steps: {len(cycles)}\n"
+                     f"Decoded by the model: {len(decoded)}, taking {sum(decoded):.1f} s\n"
+                     f"Answered from memory: {len(recalled)}, saving about {sum(recalled):.1f} s")
 
     def queue(self, record, decided_by):
         state.append("needs", {**record, "decided_by": decided_by})
