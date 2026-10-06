@@ -13,5 +13,5 @@ program = [
     "Read the temperature and store it in `temp`.",
     "Judge whether the memory reading in `mem` looks healthy for a machine in use. Store `fine` or `worrying` in `mem_level`.",
     "Judge whether the temperature in `temp` looks healthy for a machine in use. Store `fine` or `worrying` in `temp_level`.",
-    "Write one short sentence for the user. If `mem_level` and `temp_level` are both fine, say the machine looks healthy. Otherwise name each worrying reading and quote it. Store the sentence in `verdict`.",
+    "Write one short sentence for the user. If `mem_level` and `temp_level` are both fine, say the machine looks healthy. Otherwise name each worrying reading and quote it from `mem` or `temp`. Store the sentence in `verdict`.",
 ]

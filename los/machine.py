@@ -11,11 +11,17 @@ The machine owns the program counter. It moves to the next instruction after eve
 whatever the model says, so one instruction costs exactly one model call. The model never runs
 anything and never copies a command's output: `call` puts it in the register directly.
 
+The decoder is shown one instruction and only the registers that instruction names. Decoding is
+repeatable, so a decode is remembered: when everything the decoder would be shown has been seen
+before, the recorded micro-op is used and the model is not asked.
+
 Every cycle is recorded. A recorded run can be replayed, in which case commands are not run
 again and their recorded outputs are used instead.
 """
 import datetime
+import hashlib
 import json
+import re
 import time
 
 from . import state
@@ -40,7 +46,8 @@ you to judge, decide, summarise or write something from what the registers alrea
 
 Registers hold text. An instruction names registers in backticks. Store into the register the \
 instruction names, and when it refers to what a register holds, read that from the registers \
-you are given. When an instruction offers a fixed set of values, store exactly one of them.
+you are given. You are given only the registers the instruction names. When an instruction \
+offers a fixed set of values, store exactly one of them.
 
 Reply with JSON in one of these forms:
 {"micro_op": {"op": "call", "command": "<name>", "args": {"<parameter>": "<value>"}, "into": "<register>"}}
@@ -77,34 +84,57 @@ def schema(program, table):
     return form({"micro_op": {"anyOf": forms}})
 
 
-def decode(model, program, table, instruction, registers):
-    """Ask the model for the micro-op that carries out one instruction. Returns (micro-op, meta)."""
-    shown = {name: value[:SHOWN] for name, value in registers.items()}
-    user = f"Instruction: {instruction}\nRegisters: {json.dumps(shown, ensure_ascii=False)}"
-    output, meta = complete_valid(model, system_prompt(program, table), user, schema(program, table))
+def visible(instruction, program, registers):
+    """What the decoder is shown of the registers: those the instruction names that hold something."""
+    named = set(re.findall(r"`([^`]+)`", instruction))
+    return {name: registers[name][:SHOWN] for name in program.registers if name in named and name in registers}
+
+
+def decode(model, program, table, instruction, registers, known=None):
+    """The micro-op that carries out one instruction. Returns (micro-op, meta).
+
+    `known` maps a fingerprint of everything the decoder would be shown to an earlier decode.
+    A match is returned without asking the model. A new decode is added to it and to the state
+    folder. Pass None to always ask the model and remember nothing.
+    """
+    system, form = system_prompt(program, table), schema(program, table)
+    user = (f"Instruction: {instruction}\n"
+            f"Registers: {json.dumps(visible(instruction, program, registers), ensure_ascii=False)}")
+    shown = json.dumps([model.provider, model.model, system, user, form], sort_keys=True)
+    key = hashlib.sha256(shown.encode()).hexdigest()[:24]
+    if known is not None and key in known:
+        return known[key]["micro_op"], {"how": "memory", "seconds": 0, "saved": known[key]["seconds"]}
+    output, meta = complete_valid(model, system, user, form)
+    meta["how"] = "model"
+    if known is not None:
+        known[key] = {"key": key, "micro_op": output["micro_op"], "seconds": meta.get("seconds")}
+        state.append("decodes", known[key])
     return output["micro_op"], meta
 
 
-def run(name, program, table, model, args=None, replay=None, record=None):
+def run(name, program, table, model, args=None, replay=None, record=None, remember=True):
     """Run a program and return the value of its result register.
 
     `args` are loaded into the registers of the same names before the first instruction.
     `replay` maps a step to the (command, args, output) recorded for it; commands are then not
     run, and a call that differs from the recording is a trap. `record` receives each cycle;
-    by default cycles go to the state folder.
+    by default cycles go to the state folder. With `remember` off, every instruction goes to
+    the model and no decode is kept.
     """
     record = record or (lambda cycle: state.append("cycles", cycle))
+    known = {entry["key"]: entry for entry in state.read("decodes")} if remember else None
     registers = dict(args or {})
     run_id = f"{time.time_ns():x}"
     for step, instruction in enumerate(program.instructions, 1):
         before = dict(registers)
         try:
-            micro_op, meta = decode(model, program, table, instruction, registers)
+            micro_op, meta = decode(model, program, table, instruction, registers, known)
         except RuntimeError as error:
             raise Trap(f"step {step}: the decoder gave no usable micro-op ({error})")
         cycle = {"run": run_id, "date": datetime.date.today().isoformat(), "program": name, "step": step,
-                 "instruction": instruction, "registers": before, "micro_op": micro_op,
-                 "seconds": meta.get("seconds"), "provider": model.provider, "model": model.model}
+                 "instruction": instruction, "registers": before, "micro_op": micro_op, "how": meta["how"],
+                 "seconds": meta.get("seconds"), "saved": meta.get("saved"),
+                 "provider": model.provider, "model": model.model}
         if micro_op["op"] == "set":
             registers[micro_op["register"]] = micro_op["value"]
         elif micro_op["op"] == "call":

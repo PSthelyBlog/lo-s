@@ -52,6 +52,7 @@ The transcript is shortened; paths in the real output are absolute.
 - **A command can be a program**: a short list of plain-language instructions that the machine
   runs one at a time. The local model turns each instruction into a single micro-op, and the
   machine applies it. `sys.health` is the first one, and `trace` shows the steps of the latest run.
+  A step whose input the model has decoded before is answered from memory.
 - **Anything no command fits** is queued as a need. `needs` lists them.
 - **`teach NUMBER`** asks a stronger "teacher" model to write a command for a queued need. You see
   the whole proposal, code included, and nothing is installed unless you agree. The new command

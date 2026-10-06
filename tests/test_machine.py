@@ -6,7 +6,8 @@ from los.plugins import Command, CommandError, Program
 from tests.helpers import Scripted, ShellCase, StateCase
 
 PROGRAM = Program(("Read the level and store it in `raw`.", "Judge `raw` and store `fine` or `worrying` in `level`.",
-                   "Tell the user and store it in `verdict`."), ("raw", "level", "verdict", "place"), ("tank.level",),
+                   "Tell the user the `level`, quoting `raw`, and store it in `verdict`."),
+                  ("raw", "level", "verdict", "place"), ("tank.level",),
                   "verdict")
 
 
@@ -46,10 +47,36 @@ class MachineTest(StateCase):
                     Watching(*RUN), args={"place": "the shed"})
         system, user = seen[1]
         self.assertEqual(user, 'Instruction: Judge `raw` and store `fine` or `worrying` in `level`.\n'
-                               'Registers: {"place": "the shed", "raw": "40 litres"}')
+                               'Registers: {"raw": "40 litres"}')     # `place` is set but not named, so not shown
+        self.assertEqual(seen[0][1], 'Instruction: Read the level and store it in `raw`.\nRegisters: {}')
         self.assertIn("tank.level | Read the tank level | unit (litres or gallons)", system)
         self.assertNotIn("fs.delete", system)
         self.assertNotIn("Tell the user", system + user)            # the rest of the program is not shown
+
+    def test_a_decode_seen_before_is_answered_from_memory(self):
+        first, again = Scripted(*RUN), Scripted()
+        machine.run("tank.check", PROGRAM, table(), first)
+        self.assertEqual(machine.run("tank.check", PROGRAM, table(), again), "The tank is fine at 40 litres.")
+        self.assertEqual((first.calls, again.calls), (3, 0))            # the second run never asks the model
+        cycles = state.read("cycles")
+        self.assertEqual([cycle["how"] for cycle in cycles], ["model"] * 3 + ["memory"] * 3)
+        self.assertEqual(len(state.read("decodes")), 3)
+
+    def test_memory_misses_when_what_the_decoder_sees_changes(self):
+        machine.run("tank.check", PROGRAM, table(), Scripted(*RUN))
+        # A different reading: step 1 names no register that is set, so it is remembered. Steps 2
+        # and 3 name `raw`, which now holds something else, so they go to the model.
+        fuller = Scripted(RUN[1], RUN[2])
+        machine.run("tank.check", PROGRAM, table(lambda **args: "90 litres"), fuller)
+        self.assertEqual(fuller.calls, 2)
+        self.assertEqual([cycle["how"] for cycle in state.read("cycles")[3:]], ["memory", "model", "model"])
+        # Another model, or memory switched off, asks again from the start.
+        other = Scripted(*RUN)
+        other.model = "another-model"
+        machine.run("tank.check", PROGRAM, table(), other)
+        unremembered = Scripted(*RUN)
+        machine.run("tank.check", PROGRAM, table(), unremembered, remember=False)
+        self.assertEqual((other.calls, unremembered.calls), (3, 3))
 
     def test_schema_limits_commands_parameters_and_registers(self):
         schema = machine.schema(PROGRAM, table())
@@ -67,24 +94,28 @@ class MachineTest(StateCase):
         self.assertEqual(state.read("cycles")[-1]["micro_op"], {"op": "halt"})
 
     def test_traps(self):
+        def run(read, *decodes):       # memory is off, so each case starts from nothing
+            return machine.run("tank.check", PROGRAM, table(read) if read else table(), Scripted(*decodes),
+                               remember=False)
+
         with self.assertRaisesRegex(machine.Trap, "without storing anything in `verdict`"):
-            machine.run("tank.check", PROGRAM, table(), Scripted(CALL, micro(op="halt")))
+            run(None, CALL, micro(op="halt"))
 
         def broken(**args):
             raise CommandError("the sensor is unplugged")
 
         with self.assertRaisesRegex(machine.Trap, "step 1 could not run tank.level: the sensor is unplugged"):
-            machine.run("tank.check", PROGRAM, table(broken), Scripted(*RUN))
+            run(broken, *RUN)
         bad = micro(op="set", register="nowhere", value="x")
         with self.assertRaisesRegex(machine.Trap, "step 1: the decoder gave no usable micro-op"):
-            machine.run("tank.check", PROGRAM, table(), Scripted(bad, bad, bad))
+            run(None, bad, bad, bad)
         with self.assertRaises(ModelUnavailable):
-            machine.run("tank.check", PROGRAM, table(), Scripted(ModelUnavailable("down")))
+            run(None, ModelUnavailable("down"))
 
     def test_a_recorded_run_replays_without_running_commands(self):
         cycles = []
-        machine.run("tank.check", PROGRAM, table(), Scripted(*RUN), record=cycles.append)
-        self.assertEqual(state.read("cycles"), [])                  # a custom recorder replaces the state file
+        machine.run("tank.check", PROGRAM, table(), Scripted(*RUN), record=cycles.append, remember=False)
+        self.assertEqual((state.read("cycles"), state.read("decodes")), ([], []))   # nothing went to the state folder
         replay = machine.recording(cycles)
         self.assertEqual(replay, {1: ("tank.level", {"unit": "litres"}, "40 litres")})
 
@@ -92,11 +123,13 @@ class MachineTest(StateCase):
             raise AssertionError("the command ran during a replay")
 
         again = []
-        machine.run("tank.check", PROGRAM, table(must_not_run), Scripted(*RUN), replay=replay, record=again.append)
+        machine.run("tank.check", PROGRAM, table(must_not_run), Scripted(*RUN), replay=replay, record=again.append,
+                    remember=False)
         self.assertEqual(again[1]["registers"], {"raw": "40 litres"})
         other = micro(op="call", command="tank.level", args={"unit": "gallons"}, into="raw")
         with self.assertRaisesRegex(machine.Trap, "not what the recording holds"):
-            machine.run("tank.check", PROGRAM, table(), Scripted(other), replay=replay, record=again.append)
+            machine.run("tank.check", PROGRAM, table(), Scripted(other), replay=replay, record=again.append,
+                        remember=False)
 
 
 class ProgramInTheShellTest(ShellCase):
@@ -115,15 +148,23 @@ class ProgramInTheShellTest(ShellCase):
         self.assertEqual(self.shown[-1], "The tank is fine at 40 litres.")
         self.assertEqual((shell.decoder.calls, self.model.calls), (3, 0))
         shell.handle("trace")
-        self.assertIn("tank.check: 3 cycle(s)", self.shown[-4])
+        self.assertEqual(self.shown[-4], "tank.check: 3 cycle(s), 0.0 s in the decoder")
         self.assertEqual(self.shown[-3], "1. Read the level and store it in `raw`.\n"
                                          "   call tank.level --unit litres into raw  (0.00 s)")
         self.assertIn("   set level = fine", self.shown[-2])
+        shell.handle("tank.check --place shed")                         # every decode is now remembered
+        self.assertEqual(shell.decoder.calls, 3)
+        shell.handle("trace")
+        self.assertEqual(self.shown[-4], "tank.check: 3 cycle(s), 0.0 s in the decoder, 3 from memory")
+        self.assertIn("into raw  (remembered)", self.shown[-3])
+        shell.handle("stats")
+        self.assertIn("Program steps: 6\nDecoded by the model: 3, taking 0.0 s\nAnswered from memory: 3", self.shown[-1])
 
     def test_a_trap_or_a_missing_decoder_is_reported(self):
         shell = self.shell_with_program(CALL, micro(op="halt"))
         shell.handle("tank.check")
         self.assertEqual(self.shown[-1], "tank.check: the program ended without storing anything in `verdict`")
+        state.replace("decodes", [])
         shell = self.shell_with_program(ModelUnavailable("no answer"))
         shell.handle("tank.check")
         self.assertIn("is a program, and the model that decodes it is unavailable", self.shown[-1])
