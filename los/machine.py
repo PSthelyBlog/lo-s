@@ -11,9 +11,13 @@ The machine owns the program counter. It moves to the next instruction after eve
 whatever the model says, so one instruction costs exactly one model call. The model never runs
 anything and never copies a command's output: `call` puts it in the register directly.
 
-The decoder is shown one instruction and only the registers that instruction names. Decoding is
-repeatable, so a decode is remembered: when everything the decoder would be shown has been seen
-before, the recorded micro-op is used and the model is not asked.
+The decoder is shown one instruction and only the registers that instruction names in backticks.
+An instruction can also name a register in braces, as in {temp}. The decoder is not shown that
+register; it writes {temp} in its micro-op and the machine fills in what the register holds. So
+a value can be passed along without the model reading or retyping it.
+
+Decoding is repeatable, so a decode is remembered: when everything the decoder would be shown has
+been seen before, the recorded micro-op is used and the model is not asked.
 
 Every cycle is recorded. A recorded run can be replayed, in which case commands are not run
 again and their recorded outputs are used instead.
@@ -30,6 +34,7 @@ from .models import complete_valid
 from .plugins import CommandError, Program  # noqa: F401  Program is re-exported for callers
 
 SHOWN = 2000    # characters of a register's value the decoder is shown
+REFERENCE = re.compile(r"\{(\w+)\}")
 
 INSTRUCTIONS = """\
 You are the decoder of a small machine. The machine runs a program one instruction at a time. \
@@ -46,8 +51,12 @@ you to judge, decide, summarise or write something from what the registers alrea
 
 Registers hold text. An instruction names registers in backticks. Store into the register the \
 instruction names, and when it refers to what a register holds, read that from the registers \
-you are given. You are given only the registers the instruction names. When an instruction \
-offers a fixed set of values, store exactly one of them.
+you are given. You are given only the registers the instruction names in backticks. When an \
+instruction offers a fixed set of values, store exactly one of them.
+
+An instruction may also write a register in braces, such as {name}. You are not shown what that \
+register holds and you do not need to be. To use it, write {name} exactly like that in the value \
+or argument, and the machine puts the register's contents in its place.
 
 Reply with JSON in one of these forms:
 {"micro_op": {"op": "call", "command": "<name>", "args": {"<parameter>": "<value>"}, "into": "<register>"}}
@@ -84,8 +93,22 @@ def schema(program, table):
     return form({"micro_op": {"anyOf": forms}})
 
 
+def fill(text, program, registers, step):
+    """The text with each {name} replaced by what that register holds."""
+    def held(match):
+        name = match.group(1)
+        if name not in program.registers:
+            return match.group(0)       # not a register: ordinary braces
+        if name not in registers:
+            raise Trap(f"step {step} refers to {{{name}}}, which holds nothing yet")
+        return registers[name]
+
+    return REFERENCE.sub(held, text)
+
+
 def visible(instruction, program, registers):
-    """What the decoder is shown of the registers: those the instruction names that hold something."""
+    """What the decoder is shown of the registers: those the instruction names in backticks that
+    hold something. A register named in braces is passed along unseen."""
     named = set(re.findall(r"`([^`]+)`", instruction))
     return {name: registers[name][:SHOWN] for name in program.registers if name in named and name in registers}
 
@@ -136,9 +159,10 @@ def run(name, program, table, model, args=None, replay=None, record=None, rememb
                  "seconds": meta.get("seconds"), "saved": meta.get("saved"),
                  "provider": model.provider, "model": model.model}
         if micro_op["op"] == "set":
-            registers[micro_op["register"]] = micro_op["value"]
+            registers[micro_op["register"]] = fill(micro_op["value"], program, registers, step)
         elif micro_op["op"] == "call":
-            cycle["output"] = registers[micro_op["into"]] = _call(micro_op, table, step, replay)
+            filled = {param: fill(value, program, registers, step) for param, value in micro_op["args"].items()}
+            cycle["output"] = registers[micro_op["into"]] = _call(micro_op, filled, table, step, replay)
         record(cycle)
         if micro_op["op"] == "halt":
             break
@@ -147,14 +171,15 @@ def run(name, program, table, model, args=None, replay=None, record=None, rememb
     return registers[program.result]
 
 
-def _call(micro_op, table, step, replay):
+def _call(micro_op, filled, table, step, replay):
+    """Run the command with its arguments filled in. A replay compares the micro-op as decoded."""
     command, args = micro_op["command"], micro_op["args"]
     if replay is not None:
         if step not in replay or replay[step][:2] != (command, args):
             raise Trap(f"step {step} asked for {command} {args}, which is not what the recording holds")
         return replay[step][2]
     try:
-        return table[command].run(**args) or ""
+        return table[command].run(**filled) or ""
     except (CommandError, OSError) as error:
         raise Trap(f"step {step} could not run {command}: {error}")
 

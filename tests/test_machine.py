@@ -78,6 +78,34 @@ class MachineTest(StateCase):
         machine.run("tank.check", PROGRAM, table(), unremembered, remember=False)
         self.assertEqual((other.calls, unremembered.calls), (3, 3))
 
+    def test_a_register_in_braces_is_filled_in_by_the_machine_and_not_shown_to_the_decoder(self):
+        program = Program(("Read the level and store it in `raw`.",
+                           "Read the level again in the unit named by {place} and store it in `level`.",
+                           "Tell the user the reading, quoting it as {raw} and {level}, and store it in `verdict`."),
+                          ("raw", "level", "verdict", "place"), ("tank.level",), "verdict")
+        seen, asked_for = [], []
+
+        class Watching(Scripted):
+            def complete(self, system, user, schema):
+                seen.append(user)
+                return super().complete(system, user, schema)
+
+        def read(**args):
+            asked_for.append(args)
+            return f"40 {args.get('unit', 'l')}"
+
+        decodes = [micro(op="call", command="tank.level", args={}, into="raw"),
+                   micro(op="call", command="tank.level", args={"unit": "{place}"}, into="level"),
+                   micro(op="set", register="verdict", value="It holds {raw}, or {level}; {braces} stay.")]
+        result = machine.run("tank.check", program, table(read), Watching(*decodes), args={"place": "gallons"})
+        self.assertEqual(result, "It holds 40 l, or 40 gallons; {braces} stay.")
+        self.assertEqual(asked_for[1], {"unit": "gallons"})                 # the argument was filled in
+        self.assertTrue(all(user.endswith("Registers: {}") for user in seen), seen)   # nothing was shown
+        self.assertEqual(state.read("cycles")[2]["micro_op"]["value"], "It holds {raw}, or {level}; {braces} stay.")
+        with self.assertRaisesRegex(machine.Trap, "step 1 refers to {level}, which holds nothing yet"):
+            machine.run("tank.check", program, table(read), Scripted(micro(op="set", register="raw", value="{level}")),
+                        remember=False)
+
     def test_schema_limits_commands_parameters_and_registers(self):
         schema = machine.schema(PROGRAM, table())
         for good in (CALL, RUN[1], micro(op="halt"), micro(op="call", command="tank.level", args={}, into="raw")):
