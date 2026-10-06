@@ -45,6 +45,10 @@ The transcript is shortened; paths in the real output are absolute.
 - **Plain language** goes to a local model, which picks a command. The shell shows that command in
   typed form and asks before running it. Enter accepts a command that only reads; one that changes
   anything needs an explicit yes.
+- **A line you accepted before is remembered.** It is answered from memory instead of by the
+  model, in about a tenth of the time. A command that only reads then runs at once; one that
+  changes anything still asks. `wrong` takes the latest such choice back, and `stats` shows how
+  often memory answered. Memory holds for one version of the command table.
 - **Anything no command fits** is queued as a need. `needs` lists them.
 - **`teach NUMBER`** asks a stronger "teacher" model to write a command for a queued need. You see
   the whole proposal, code included, and nothing is installed unless you agree. The new command
@@ -91,7 +95,8 @@ experiment. Nothing is installed outside the `runtime/` folder; delete it to und
 
 lo-s runs commands on your real machine.
 
-- A command chosen by a model is always shown first and never runs without your agreement.
+- A command chosen by a model is always shown first and never runs without your agreement. Once
+  you have agreed to a read-only command for a line, that line runs it again without asking.
 - A command written by a model is shown in full before it is installed, with what its imports let
   it do. Its code is read for a few things it must not contain, but there is no sandbox: once you
   agree, it runs with your permissions. Read it first.

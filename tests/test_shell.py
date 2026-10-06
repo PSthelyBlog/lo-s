@@ -1,24 +1,9 @@
 from los import plugins, state
 from los.models import ModelUnavailable
-from los.shell import Shell
-from tests.helpers import NONE, Scripted, StateCase, call, recording_table
+from tests.helpers import NONE, ShellCase, call
 
 
-class ShellTest(StateCase):
-    def shell(self, *model_outputs, answers=()):
-        """A shell over the recording table, a scripted model and scripted answers to its questions."""
-        self.ran, self.shown, self.asked = [], [], []
-        self.model = Scripted(*model_outputs)
-        replies = list(answers)
-
-        def ask(question):
-            self.asked.append(question)
-            if not replies:
-                raise EOFError
-            return replies.pop(0)
-
-        return Shell(recording_table(self.ran), self.model, ask, self.shown.append)
-
+class ShellTest(ShellCase):
     def test_structured_command_runs_without_the_model(self):
         self.shell().handle("fs.list --path /tmp")
         self.assertEqual((self.ran, self.model.calls, self.asked), ([("fs.list", {"path": "/tmp"})], 0, []))
@@ -55,6 +40,7 @@ class ShellTest(StateCase):
         self.assertEqual(self.ran, [])
         need = state.read("needs")[0]
         self.assertEqual((need["line"], need["decided_by"]), ("delete the tmp directory", "user"))
+        self.assertEqual(state.read("labels")[0]["verdict"], "wrong")
 
     def test_nothing_fits_is_queued(self):
         shell = self.shell(NONE, NONE)

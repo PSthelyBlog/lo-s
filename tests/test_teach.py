@@ -129,8 +129,13 @@ class TeachTest(StateCase):
         shutil.copytree(state.ROOT / "plugins", self.plugin_dir, ignore=shutil.ignore_patterns("__pycache__", "fs.copy"))
         state.append("needs", {"line": "order a large pizza", "date": "2026-10-05"})
         state.append("needs", {"line": "make a backup copy of config.yaml", "date": "2026-10-05"})
-        state.append("labels", {"line": "how much ram is free", "command": "sys.status", "verdict": "accepted"})
-        state.append("labels", {"line": "rename a to b", "command": "fs.move", "verdict": "declined"})
+        self.before = plugins.version(plugins.load(self.plugin_dir))
+        state.append("labels", {"line": "how much ram is free", "command": "sys.status", "args": {"what": "memory"},
+                                "verdict": "accepted", "table": self.before, "seconds": 1.5})
+        state.append("labels", {"line": "rename a to b", "command": "fs.move", "args": {}, "verdict": "declined",
+                                "table": self.before})
+        state.append("labels", {"line": "an old line", "command": "fs.list", "args": {}, "verdict": "accepted",
+                                "table": "an-earlier-table"})
 
     def shell(self, author_says, *dispatch_says, answers=("y",)):
         self.shown, replies = [], list(answers)
@@ -151,7 +156,14 @@ class TeachTest(StateCase):
         self.assertIn("fs.copy", shell.table)
         self.assertEqual(self.waiting(), ["order a large pizza"])
         self.assertEqual(state.read("authored")[0]["command"], "fs.copy")
-        self.assertEqual(self.dispatcher.calls, 2)                   # one accepted line replayed, plus the need
+        self.assertEqual(self.dispatcher.calls, 2)                   # one settled line replayed, plus the need
+        # The settled line is carried to the new table, so it is still answered without the model.
+        carried = state.read("labels")[-1]
+        self.assertEqual((carried["line"], carried["table"], carried["carried_from"]),
+                         ("how much ram is free", shell.table_version, self.before))
+        shell.handle("how much ram is free")
+        self.assertEqual(self.dispatcher.calls, 2)
+        self.assertTrue(self.shown[-1].startswith("Memory: "))
         source = self.plugin_dir / "fs" / "plugin.toml"
         shell.handle(f"fs.copy --source {source} --dest {self.plugin_dir}/copy.toml")
         self.assertEqual((self.plugin_dir / "copy.toml").read_text(), source.read_text())

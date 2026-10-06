@@ -73,6 +73,12 @@ design, not yet confirmed) or **Open**.
   change is a commit.
 - **Proposed.** The metric is wall-clock time per completed command, with zero regressions required.
 - **Proposed.** The user is a judge: re-running, correcting or undoing a command counts as a label.
+- **Proposed.** Three verdicts are recorded for a choice the model made. Accepted settles the line.
+  Declined says nothing, because the choice may be right and simply unwanted. Wrong, given by
+  queuing the line as a need or by typing `wrong`, unsettles it.
+- **Proposed.** A settled line is answered from memory for as long as the command table has the
+  version it was settled against. When a command is added, the acceptance check replays every
+  settled line, and those lines are carried to the new version.
 
 ## Safety
 
@@ -93,9 +99,11 @@ design, not yet confirmed) or **Open**.
   approves it, and the acceptance check decides whether it stays. `forget NUMBER` drops a need.
 - Three starter plugins, `fs`, `note` and `sys`, seven commands in all, written as plain code so
   that dispatch has something to run. They are not a decision about the day-one core.
+- Memory (`los/memory.py`): the first optimization. A settled line skips the model, and `stats`
+  reports how many lines memory answered and the model time that saved.
 - Not built: the fetch, decode, execute loop; draining the queue without being asked; a sandbox
   or enforced permissions for written commands; tests of what a written command does; one commit
-  per install; any optimization.
+  per install; any optimization beyond memory; a search for optimizations.
 
 ## Open
 
