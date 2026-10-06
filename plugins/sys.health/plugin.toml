@@ -2,6 +2,8 @@ name = "sys"
 
 # A command written as a program: the machine runs the instructions in order, and the decode
 # model turns each one into a single micro-op. Steps 3 and 4 are judgements no fixed rule states.
+# A register in backticks is shown to the decoder. One in braces is not: the decoder writes the
+# braces in its answer and the machine fills in what the register holds.
 [commands.health]
 description = "Say in one line whether the machine looks healthy"
 effect = "read"
@@ -13,5 +15,5 @@ program = [
     "Read the temperature and store it in `temp`.",
     "Judge whether the memory reading in `mem` looks healthy for a machine in use. Store `fine` or `worrying` in `mem_level`.",
     "Judge whether the temperature in `temp` looks healthy for a machine in use. Store `fine` or `worrying` in `temp_level`.",
-    "Write one short sentence for the user. If `mem_level` and `temp_level` are both fine, say the machine looks healthy. Otherwise name each worrying reading and quote it from `mem` or `temp`. Store the sentence in `verdict`.",
+    "Write one short line for the user. If `mem_level` and `temp_level` are both fine, the line is: The machine looks healthy. Otherwise the line starts with Worrying: and then lists {mem} if `mem_level` is worrying and {temp} if `temp_level` is worrying, separated by a semicolon. Store the line in `verdict`.",
 ]

@@ -18,8 +18,12 @@ design, not yet confirmed) or **Open**.
 - **Proposed.** The emulator owns the program counter. A model never chooses the next instruction.
 - **Proposed.** A program declares its registers and the commands it may call, and the decoder can
   name nothing else. A program may not be less careful than a command it calls.
-- **Proposed.** The decoder is shown one instruction and only the registers that instruction names.
-  An instruction must therefore name every register it reads.
+- **Proposed.** The decoder is shown one instruction and only the registers that instruction names
+  in backticks. An instruction must therefore name every register it reads.
+- **Proposed.** An instruction can name a register in braces, as in `{temp}`, to pass it along
+  unread. The decoder is not shown it; it writes the braces in a value or an argument and the
+  machine fills in what the register holds. The fewer registers a decode reads, the more often
+  memory can answer it.
 - **Proposed.** A decode is remembered. When everything the decoder would be shown has been seen
   before, with the same model, the recorded micro-op is used and the model is not asked.
 - **Proposed.** Tools are syscalls. A syscall is the only way to affect the host.
@@ -122,8 +126,9 @@ design, not yet confirmed) or **Open**.
   `decode` role, recorded cycle by cycle and replayable. `sys.health` is the first program, and
   `trace` shows the latest run. `experiments/machine/` measured decode stability: identical inputs
   gave identical micro-ops in 100 of 100 cycles.
-- Memory for instructions: `sys.health` went from 9.0 seconds in the decoder to 1.6 on average
-  over 20 runs, with 85 of 100 decodes answered from memory.
+- Memory for instructions: `sys.health` went from 8.6 seconds in the decoder to 0.5 on average
+  over 20 runs, with 94 of 100 decodes answered from memory.
+- Registers passed along in braces, filled in by the machine without the decoder reading them.
 - Not built: turning remembered judgements into rules; a shorter micro-op encoding; conditionals
   and jumps; programs
   written by the author model; draining the queue without being asked; a sandbox
@@ -143,7 +148,7 @@ design, not yet confirmed) or **Open**.
 
 - `experiments/machine/`: does each instruction of a program decode to the same micro-op every
   time, and how much can memory take over? Run on 2026-10-06; results are in its README.
-  Identical inputs always gave the same micro-op, and memory answered 85 of 100 decodes.
+  Identical inputs always gave the same micro-op, and memory answered 94 of 100 decodes.
 - `experiments/dispatch/`: does the local model pick the same command as the teacher as the command
   table grows from 10 to 200 entries? Run on 2026-10-05; results are in its README. What it means
   for this spec:
