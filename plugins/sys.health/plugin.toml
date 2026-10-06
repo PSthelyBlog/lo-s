@@ -17,3 +17,26 @@ program = [
     "Judge whether the temperature in `temp` looks healthy for a machine in use. Store `fine` or `worrying` in `temp_level`.",
     "Write one short line for the user. If `mem_level` and `temp_level` are both fine, the line is: The machine looks healthy. Otherwise the line starts with Worrying: and then lists {mem} if `mem_level` is worrying and {temp} if `temp_level` is worrying, separated by a semicolon. Store the line in `verdict`.",
 ]
+
+# The last step only arranges values it is given, and it has four possible inputs. Each is pinned,
+# so the decoder is never asked for it. Without the pins, one server start decoded the second case
+# correctly and another, with the layers placed differently, copied the instruction's wording.
+[[commands.health.pins]]
+step = 5
+registers = { mem_level = "fine", temp_level = "fine" }
+micro_op = { op = "set", register = "verdict", value = "The machine looks healthy." }
+
+[[commands.health.pins]]
+step = 5
+registers = { mem_level = "fine", temp_level = "worrying" }
+micro_op = { op = "set", register = "verdict", value = "Worrying: {temp}" }
+
+[[commands.health.pins]]
+step = 5
+registers = { mem_level = "worrying", temp_level = "fine" }
+micro_op = { op = "set", register = "verdict", value = "Worrying: {mem}" }
+
+[[commands.health.pins]]
+step = 5
+registers = { mem_level = "worrying", temp_level = "worrying" }
+micro_op = { op = "set", register = "verdict", value = "Worrying: {mem}; {temp}" }

@@ -26,6 +26,9 @@ design, not yet confirmed) or **Open**.
   memory can answer it.
 - **Proposed.** A decode is remembered. When everything the decoder would be shown has been seen
   before, with the same model, the recorded micro-op is used and the model is not asked.
+- **Proposed.** A program can pin the micro-op for a given input of a step. A pinned input is never
+  sent to the decoder. A step that only arranges a few known values should be pinned for all of
+  them. Pins come first, then rules, then memory, then the model.
 - **Proposed.** A step's remembered judgements can become a rule: a small pure function written by
   the author model and approved by the user. It is asked before memory and the model, and returns
   nothing for an input it does not clearly cover. A quarter of the recorded cases are held back
@@ -136,7 +139,11 @@ design, not yet confirmed) or **Open**.
 - Rules (`los/rules.py`, `rule PROGRAM STEP` in the shell). Opus wrote one for the temperature
   judgement in `sys.health` from eight recorded answers; it covers 20 to 78 °C and 84 to 110 °C and
   leaves the rest to the model.
-- Not built: suggesting a rule without being asked; a shorter micro-op encoding; conditionals
+- Pins: the last step of `sys.health` is pinned for its four inputs, after a restarted server
+  decoded one of them wrongly.
+- Not built: making the decoder the same from one server start to the next, or noticing when it
+  is not; checks that a program's steps still decode as intended; suggesting a rule without being
+  asked; a shorter micro-op encoding; conditionals
   and jumps; programs
   written by the author model; draining the queue without being asked; a sandbox
   or enforced permissions for written commands; tests of what a written command does; one commit

@@ -20,6 +20,21 @@ from .models import ModelUnavailable, provider
 from .parse import UsageError, parse, render, usage
 
 
+BUILTINS = {
+    "help": "help lists the commands. help NAME explains one.",
+    "needs": "needs lists the lines no command could handle, numbered.",
+    "teach": "teach NUMBER asks the author model to write a command for a queued need. You see it before it is installed.",
+    "forget": "forget NUMBER drops a queued need.",
+    "wrong": "wrong takes back the latest plain-language choice, so that line is asked about again.",
+    "stats": "stats shows how many lines and program steps the model, memory and rules answered.",
+    "trace": "trace shows each step of the latest program run and the micro-op it became.",
+    "rule": "rule PROGRAM STEP asks the author model to turn a step's remembered answers into a small function. "
+            "The step must have stored at least six different inputs with two different answers.",
+    "rules": "rules lists the rules in use.",
+    "exit": "exit leaves the shell.",
+}
+
+
 class Shell:
     def __init__(self, table, model, ask=input, out=print, author=None, plugin_dir=None, decoder=None):
         self.table, self.model, self.ask, self.out = table, model, ask, out
@@ -150,7 +165,8 @@ class Shell:
                 did = f"set {op['register']} = {op['value']}"
             else:
                 did = "halt"
-            took = {"memory": "remembered", "rule": "rule"}.get(cycle.get("how")) or f"{cycle['seconds'] or 0:.2f} s"
+            took = {"memory": "remembered", "rule": "rule", "pinned": "pinned"}.get(cycle.get("how")) \
+                or f"{cycle['seconds'] or 0:.2f} s"
             self.out(f"{cycle['step']}. {cycle['instruction']}\n   {did}  ({took})")
 
     def rule(self, words):
@@ -166,7 +182,7 @@ class Shell:
             return
         name, step, program = command.name, int(words[1]), command.program
         try:
-            register, listed = rules.cases(name, step, program)
+            register, listed = rules.cases(name, step, program, self.table, self.decoder)
         except rules.Unsuitable as reason:
             self.out(f"No rule for step {step} of {name}: {reason}.")
             return
@@ -217,13 +233,13 @@ class Shell:
                  f"Answered from memory: {len(recalled)}, saving about {sum(recalled):.1f} s")
         cycles = state.read("cycles")
         if cycles:
-            decoded = [cycle["seconds"] or 0 for cycle in cycles if cycle.get("how") not in ("memory", "rule")]
+            decoded = [cycle["seconds"] or 0 for cycle in cycles if cycle.get("how") not in ("memory", "rule", "pinned")]
             recalled = [cycle.get("saved") or 0 for cycle in cycles if cycle.get("how") == "memory"]
-            ruled = sum(cycle.get("how") == "rule" for cycle in cycles)
+            ruled = sum(cycle.get("how") in ("rule", "pinned") for cycle in cycles)
             self.out(f"Program steps: {len(cycles)}\n"
                      f"Decoded by the model: {len(decoded)}, taking {sum(decoded):.1f} s\n"
                      f"Answered from memory: {len(recalled)}, saving about {sum(recalled):.1f} s\n"
-                     f"Answered by a rule: {ruled}")
+                     f"Answered by a rule or a pin: {ruled}")
 
     def queue(self, record, decided_by):
         state.append("needs", {**record, "decided_by": decided_by})
@@ -346,6 +362,9 @@ class Shell:
                      "and rules lists those in use. exit leaves.")
             return
         for name in names:
+            if name in BUILTINS:
+                self.out(BUILTINS[name])
+                continue
             if name not in self.table:
                 self.out(f"There is no command named {name}.")
                 continue

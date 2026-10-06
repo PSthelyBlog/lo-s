@@ -18,7 +18,9 @@ a value can be passed along without the model reading or retyping it.
 
 Decoding is repeatable, so a decode is remembered: when everything the decoder would be shown has
 been seen before, the recorded micro-op is used and the model is not asked. A step can also have
-a rule (see rules.py), which is asked before memory and the model.
+a rule (see rules.py), which is asked before memory and the model. And a program can pin the
+micro-op for an input outright, which comes before all of them: a step that only arranges a few
+known values should not depend on a model at all.
 
 Every cycle is recorded. A recorded run can be replayed, in which case commands are not run
 again and their recorded outputs are used instead.
@@ -114,6 +116,14 @@ def visible(instruction, program, registers):
     return {name: registers[name][:SHOWN] for name in program.registers if name in named and name in registers}
 
 
+def request(model, program, table, instruction, shown):
+    """What the decoder is sent for one instruction, and the fingerprint of all of it."""
+    system, form = system_prompt(program, table), schema(program, table)
+    user = f"Instruction: {instruction}\nRegisters: {json.dumps(shown, ensure_ascii=False)}"
+    everything = json.dumps([model.provider, model.model, system, user, form], sort_keys=True)
+    return system, user, form, hashlib.sha256(everything.encode()).hexdigest()[:24]
+
+
 def decode(model, program, table, instruction, registers, known=None):
     """The micro-op that carries out one instruction. Returns (micro-op, meta).
 
@@ -121,11 +131,7 @@ def decode(model, program, table, instruction, registers, known=None):
     A match is returned without asking the model. A new decode is added to it and to the state
     folder. Pass None to always ask the model and remember nothing.
     """
-    system, form = system_prompt(program, table), schema(program, table)
-    user = (f"Instruction: {instruction}\n"
-            f"Registers: {json.dumps(visible(instruction, program, registers), ensure_ascii=False)}")
-    shown = json.dumps([model.provider, model.model, system, user, form], sort_keys=True)
-    key = hashlib.sha256(shown.encode()).hexdigest()[:24]
+    system, user, form, key = request(model, program, table, instruction, visible(instruction, program, registers))
     if known is not None and key in known:
         return known[key]["micro_op"], {"how": "memory", "seconds": 0, "saved": known[key]["seconds"]}
     output, meta = complete_valid(model, system, user, form)
@@ -143,7 +149,7 @@ def run(name, program, table, model, args=None, replay=None, record=None, rememb
     `replay` maps a step to the (command, args, output) recorded for it; commands are then not
     run, and a call that differs from the recording is a trap. `record` receives each cycle;
     by default cycles go to the state folder. With `remember` off, every instruction goes to
-    the model: no rule is asked, no decode is reused and none is kept.
+    the model: no pin or rule is used, no decode is reused and none is kept.
     """
     record = record or (lambda cycle: state.append("cycles", cycle))
     known = {entry["key"]: entry for entry in state.read("decodes")} if remember else None
@@ -151,8 +157,12 @@ def run(name, program, table, model, args=None, replay=None, record=None, rememb
     run_id = f"{time.time_ns():x}"
     for step, instruction in enumerate(program.instructions, 1):
         before = dict(registers)
-        ruled = rules.answer(name, step, instruction, visible(instruction, program, registers)) if remember else None
-        if ruled:
+        shown = visible(instruction, program, registers)
+        pinned = next((op for at, seen, op in program.pins if remember and at == step and seen == shown), None)
+        ruled = rules.answer(name, step, instruction, shown) if remember and not pinned else None
+        if pinned:
+            micro_op, meta = dict(pinned), {"how": "pinned", "seconds": 0}
+        elif ruled:
             micro_op, meta = {"op": "set", "register": ruled[0], "value": ruled[1]}, {"how": "rule", "seconds": 0}
         else:
             try:

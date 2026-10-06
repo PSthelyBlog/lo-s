@@ -33,7 +33,8 @@ experiments/machine/step.py sys.health 5 mem_level=fine,worrying temp_level=fine
 
 In short:
 
-- **Identical inputs gave identical micro-ops**, in all 100 frozen cycles.
+- **Identical inputs gave identical micro-ops**, in all 100 frozen cycles. This held within one
+  start of the model server, and did not hold across a restart (see the last step, below).
 - **The two `call` steps are constants.** They name no register that holds anything, so their input
   never changes and neither does their micro-op.
 - **A judgement follows its reading.** Memory was always judged fine. The temperature took 8 values
@@ -103,6 +104,18 @@ All four are right. An earlier wording of this instruction got the second row wr
 `{mem}` when only the temperature was worrying. It was just as repeatable as the correct one, and
 the mistake only showed because the stored lines are listed in the report.
 
+**The same step later decoded wrongly after the model server was restarted.** With the same model
+file, the same instruction and the same input, the second row came back as the instruction's own
+wording: `Worrying: {mem} if mem_level is worrying and {temp} if temp_level is worrying, separated
+by a semicolon`. Memory then repeated it on every run. What differed between the two server starts
+was not measured. The likeliest cause is how the layers were split between RAM and GPU, which
+llama.cpp decides from the GPU memory free at start, and another program was using the GPU the
+second time.
+
+The four cases are now pinned in the program: the micro-op for each is written in `plugin.toml`
+and the decoder is never asked. A step that only arranges a few known values should not depend
+on a model.
+
 ### A rule for the temperature judgement
 
 `rule sys.health 4` in the shell handed the recorded answers for step 4 to Claude Opus 5.5 and
@@ -166,5 +179,6 @@ for contradicting a held-back case or for missing one it was shown.
   stopped being called the machine settled at one temperature, so the readings repeated.
 - The check heats the machine it is checking: while every step went to the model the temperature
   sat at 84 to 88 °C.
-- A remembered decode is as old as the settings it was made under. Changing how the server places
-  the model can change answers, and memory does not notice.
+- A remembered decode is as old as the server start it was made under. A restart changed one
+  answer, and memory does not notice a restart.
+- The rule was built from answers recorded under one server start.

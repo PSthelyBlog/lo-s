@@ -18,6 +18,10 @@ class PluginsTest(unittest.TestCase):
         health = table["sys.health"]
         self.assertEqual((health.run, health.program.calls, health.program.result, len(health.program.instructions)),
                          (None, ("sys.status",), "verdict", 5))
+        self.assertEqual([step for step, _, _ in health.program.pins], [5, 5, 5, 5])
+        self.assertIn(({"mem_level": "fine", "temp_level": "worrying"},
+                       {"op": "set", "register": "verdict", "value": "Worrying: {temp}"}),
+                      [(shown, op) for _, shown, op in health.program.pins])
 
     def test_version_follows_the_table(self):
         table = recording_table([])
@@ -49,6 +53,12 @@ class PluginsTest(unittest.TestCase):
                 with self.assertRaises(ValueError, msg=changes):
                     self.program_plugin(folder, **changes)
             self.assertIn("p.check", self.program_plugin(folder, calls='["b.read"]', effect='"write"'))
+            good = '[{step = 2, registers = {x = "1"}, micro_op = {op = "set", register = "out", value = "one"}}]'
+            self.assertEqual(len(self.program_plugin(folder, pins=good)["p.check"].program.pins), 1)
+            for bad in (good.replace("step = 2", "step = 9"), good.replace('"out"', '"elsewhere"'),
+                        good.replace('"set"', '"halt"'), good.replace("{x =", "{y =")):
+                with self.assertRaises(ValueError, msg=bad):
+                    self.program_plugin(folder, pins=bad)
 
     def test_unknown_effect_is_refused(self):
         with tempfile.TemporaryDirectory() as folder:
