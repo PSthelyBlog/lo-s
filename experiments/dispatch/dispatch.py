@@ -21,6 +21,7 @@ from concurrent.futures import ThreadPoolExecutor
 HERE = pathlib.Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE.parent.parent))
 from los.models import ClaudeCli, OpenAICompat, complete_valid  # noqa: E402
+from los.plugins import Command  # noqa: E402
 RESULTS = HERE / "results"
 
 INSTRUCTIONS = """\
@@ -47,6 +48,15 @@ def load_commands(size):
     """The first `size` rows of the table, sorted by name so position carries no hint."""
     rows = [line.split("\t") for line in (HERE / "commands.tsv").read_text().splitlines()]
     return sorted(rows[:size])
+
+
+def table_of(size):
+    """The first `size` commands as the shell's command table."""
+    table = {}
+    for name, description, *params in load_commands(size):
+        names = [param.strip() for param in params[0].split(",")] if params else []
+        table[name] = Command(name, description, dict.fromkeys(names, ""))
+    return table
 
 
 def load_lines():

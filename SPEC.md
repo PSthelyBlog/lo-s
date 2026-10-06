@@ -72,6 +72,8 @@ design, not yet confirmed) or **Open**.
   never saw, accept only if no labelled decode changes and the metric improves. Each accepted
   change is a commit.
 - **Proposed.** The metric is wall-clock time per completed command, with zero regressions required.
+- **Proposed.** A change must be faster by a clear margin, 5% for now, before it replaces what is in
+  use, so that noise between runs does not pass for an improvement.
 - **Proposed.** The user is a judge: re-running, correcting or undoing a command counts as a label.
 - **Proposed.** Three verdicts are recorded for a choice the model made. Accepted settles the line.
   Declined says nothing, because the choice may be right and simply unwanted. Wrong, given by
@@ -101,9 +103,14 @@ design, not yet confirmed) or **Open**.
   that dispatch has something to run. They are not a decision about the day-one core.
 - Memory (`los/memory.py`): the first optimization. A settled line skips the model, and `stats`
   reports how many lines memory answered and the model time that saved.
+- A search over server settings (`los/tune.py`, `scripts/tune-server.py`): the first optimization
+  the system looks for itself. It varies how weights are loaded, the thread count and the split
+  between RAM and GPU, and keeps a setting only if recorded lines get the same answers. On the
+  test machine it found nothing better than the defaults.
 - Not built: the fetch, decode, execute loop; draining the queue without being asked; a sandbox
   or enforced permissions for written commands; tests of what a written command does; one commit
-  per install; any optimization beyond memory; a search for optimizations.
+  per install; optimizations proposed by a model; a search that uses the user's own labels as
+  its record.
 
 ## Open
 

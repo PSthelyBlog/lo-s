@@ -25,6 +25,7 @@ experiments/dispatch/run-student.sh TAG MODEL.gguf [llama-server arguments]
 experiments/dispatch/score.py teacher-opus-5-5 TAG
 scripts/placement-sweep.py MODEL.gguf 30 22 auto           # speed against expert layers kept in RAM
 experiments/dispatch/replay-shell.py TAG                   # the shell's own dispatcher, server running
+scripts/tune-server.py MODEL.gguf                          # search server settings against the record
 ```
 
 ## Results, 2026-10-05
@@ -143,6 +144,30 @@ Against the looser schema above, command agreement is unchanged within one line 
 parameter names improved (from 95%, 92% and 86%), and it ran a command the teacher would not have
 less often (from 13%, 8% and 0%). It answered `none` a little more often at 10 commands (6 lines
 where the teacher picked a command, up from 3).
+
+### Search over server settings, 2026-10-06 (Gemma 4 26B-A4B)
+
+`scripts/tune-server.py` started the server six ways and replayed the 100 lines at 200 commands
+through the shell's dispatcher. A setting is accepted only if all 100 answers match the record
+above and at least 500 MiB of GPU memory stays free, and it replaces the best so far only if it
+is at least 5% faster.
+
+| Extra server arguments | Seconds per line | Tokens per second | GPU MiB free | Verdict |
+|---|---|---|---|---|
+| (defaults) | 1.04 | 40 | 1027 | accepted |
+| `--load-mode none` | 1.04 | 40 | 1011 | accepted |
+| `--threads 12` | 1.10 | 37 | 1027 | accepted |
+| `--threads 16` | 1.23 | 32 | 1027 | accepted |
+| `--cpu-moe` | 1.27 | 32 | 5105 | accepted |
+| `--fit-target 512` | 1.01 | 41 | 619 | 4 of 100 answers differ from the record |
+
+- **Nothing beat the defaults.** The search found no improvement on this machine.
+- **`--load-mode none` made no difference**, although llama.cpp suggests it at startup for this
+  placement.
+- **More threads than physical cores was slower.** The machine has 8 cores and 16 threads.
+- **The one faster setting changed answers.** Letting llama.cpp put more expert layers on the GPU
+  was 3% faster and changed 4 of 100 answers, so it was rejected.
+- **The defaults reproduced the record exactly**, a day later and after a restart.
 
 ## Caveats
 

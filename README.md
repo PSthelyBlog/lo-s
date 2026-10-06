@@ -91,6 +91,10 @@ scripts/serve.sh gemma-4-26B-A4B-it-qat-q4_0.gguf     # leave running in another
 `scripts/setup-runtime.sh` with no arguments also fetches the smaller model used in the
 experiment. Nothing is installed outside the `runtime/` folder; delete it to undo.
 
+`scripts/tune-server.py MODEL.gguf` searches for faster server settings on your machine. It keeps
+a setting only if recorded lines still get the same answers, and `serve.sh` then uses the winner.
+On the test machine nothing beat the defaults.
+
 ## Safety
 
 lo-s runs commands on your real machine.
@@ -101,6 +105,8 @@ lo-s runs commands on your real machine.
   it do. Its code is read for a few things it must not contain, but there is no sandbox: once you
   agree, it runs with your permissions. Read it first.
 - `fs.move` is the only starter command that changes files, and it refuses to overwrite.
+- The model server listens on this machine only, and only pages served from this machine may read
+  its answers in a browser.
 - Local models make mistakes. In the experiment, one turned "what's listening on port 5432" into a
   command that would have stopped the process. Read the command before you agree to it.
 
