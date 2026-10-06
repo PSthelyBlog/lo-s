@@ -2,6 +2,7 @@
 
 [roles]
 dispatch = "local"          # reads plain-language lines; runs on every one, so keep it local
+decode = "local"            # turns each instruction of a program into a micro-op
 author = "claude"           # writes a new command when you type: teach NUMBER
 
 [providers.local]

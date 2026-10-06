@@ -1,0 +1,17 @@
+name = "sys"
+
+# A command written as a program: the machine runs the instructions in order, and the decode
+# model turns each one into a single micro-op. Steps 3 and 4 are judgements no fixed rule states.
+[commands.health]
+description = "Say in one line whether the machine looks healthy"
+effect = "read"
+calls = ["sys.status"]
+registers = ["mem", "temp", "mem_level", "temp_level", "verdict"]
+result = "verdict"
+program = [
+    "Read the memory status and store it in `mem`.",
+    "Read the temperature and store it in `temp`.",
+    "Judge whether the memory reading in `mem` looks healthy for a machine in use. Store `fine` or `worrying` in `mem_level`.",
+    "Judge whether the temperature in `temp` looks healthy for a machine in use. Store `fine` or `worrying` in `temp_level`.",
+    "Write one short sentence for the user. If `mem_level` and `temp_level` are both fine, say the machine looks healthy. Otherwise name each worrying reading and quote it. Store the sentence in `verdict`.",
+]

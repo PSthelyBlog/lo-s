@@ -15,15 +15,16 @@ import pathlib
 import shutil
 import tomllib
 
-from . import dispatch, memory, plugins, state, teach
+from . import dispatch, machine, memory, plugins, state, teach
 from .models import ModelUnavailable, provider
 from .parse import UsageError, parse, render, usage
 
 
 class Shell:
-    def __init__(self, table, model, ask=input, out=print, author=None, plugin_dir=None):
+    def __init__(self, table, model, ask=input, out=print, author=None, plugin_dir=None, decoder=None):
         self.table, self.model, self.ask, self.out = table, model, ask, out
         self.author, self.plugin_dir = author, plugin_dir
+        self.decoder = decoder or model     # decodes a program's instructions into micro-ops
         self.table_version = plugins.version(table)
         self.last = None    # the latest plain-language choice, so that `wrong` can take it back
 
@@ -47,6 +48,8 @@ class Shell:
             self.wrong()
         elif line == "stats":
             self.stats()
+        elif line == "trace":
+            self.trace()
         else:
             try:
                 parsed = parse(line, self.table)
@@ -123,6 +126,25 @@ class Shell:
         self.out(f"Taken back: \"{self.last['line']}\" is no longer remembered as {self.last['command']}.")
         self.last = None
 
+    def trace(self):
+        """Show the cycles of the latest program run: each instruction and the micro-op it became."""
+        cycles = state.read("cycles")
+        if not cycles:
+            self.out("No program has run yet.")
+            return
+        latest = [cycle for cycle in cycles if cycle["run"] == cycles[-1]["run"]]
+        total = sum(cycle["seconds"] or 0 for cycle in latest)
+        self.out(f"{latest[0]['program']}: {len(latest)} cycle(s), {total:.1f} s in the decoder")
+        for cycle in latest:
+            op = cycle["micro_op"]
+            if op["op"] == "call":
+                did = f"call {render(op['command'], op['args'])} into {op['into']}"
+            elif op["op"] == "set":
+                did = f"set {op['register']} = {op['value']}"
+            else:
+                did = "halt"
+            self.out(f"{cycle['step']}. {cycle['instruction']}\n   {did}  ({cycle['seconds'] or 0:.2f} s)")
+
     def stats(self):
         log = state.read("dispatches")
         asked = [entry["seconds"] or 0 for entry in log if entry["how"] == "model"]
@@ -137,7 +159,13 @@ class Shell:
 
     def run(self, command, args):
         try:
-            text = command.run(**args)
+            if command.program:
+                text = machine.run(command.name, command.program, self.table, self.decoder, args)
+            else:
+                text = command.run(**args)
+        except ModelUnavailable as error:
+            self.out(f"{command.name} is a program, and the model that decodes it is unavailable: {error}.")
+            return
         except (plugins.CommandError, OSError) as error:  # OSError: permission denied, missing file
             self.out(f"{command.name}: {error}")
             return
@@ -241,7 +269,8 @@ class Shell:
                      "teach NUMBER asks for a command to be written for one, forget NUMBER drops it.\n"
                      "Anything else is read as plain language and matched to a command. A line you\n"
                      "accepted before is remembered; wrong takes the latest such choice back, and\n"
-                     "stats shows how often memory answered. exit leaves.")
+                     "stats shows how often memory answered. trace shows the steps of the latest\n"
+                     "program run. exit leaves.")
             return
         for name in names:
             if name not in self.table:
@@ -271,7 +300,8 @@ def main(argv=None):
     def role(name):
         return provider(config["providers"][config["roles"][name]]) if name in config["roles"] else None
 
-    shell = Shell(plugins.load(plugin_dir), role("dispatch"), author=role("author"), plugin_dir=plugin_dir)
+    shell = Shell(plugins.load(plugin_dir), role("dispatch"), author=role("author"), plugin_dir=plugin_dir,
+                  decoder=role("decode"))
     if opts.line is not None:
         shell.handle(opts.line)
         return

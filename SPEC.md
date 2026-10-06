@@ -10,10 +10,17 @@ design, not yet confirmed) or **Open**.
 ## The machine
 
 - **Proposed.** A fetch, decode, execute loop. An instruction is a sentence. A model decodes it into
-  one structured micro-op (`set`, `call`, `halt`), and deterministic code applies the micro-op to
-  registers and context.
+  one structured micro-op, and deterministic code applies the micro-op to registers.
+- **Proposed.** There are three micro-ops. `call` runs a command and stores its output in a
+  register. `set` stores a value the model worked out. `halt` stops the program.
+- **Proposed.** One instruction is exactly one micro-op, so it costs one model call. The model
+  never copies a command's output; `call` puts it in the register directly.
 - **Proposed.** The emulator owns the program counter. A model never chooses the next instruction.
+- **Proposed.** A program declares its registers and the commands it may call, and the decoder can
+  name nothing else. A program may not be less careful than a command it calls.
 - **Proposed.** Tools are syscalls. A syscall is the only way to affect the host.
+- **Proposed.** Every cycle is recorded, and a recorded run can be replayed without running its
+  commands again. A replay that asks for a different command stops.
 
 ## The shell
 
@@ -107,7 +114,12 @@ design, not yet confirmed) or **Open**.
   the system looks for itself. It varies how weights are loaded, the thread count and the split
   between RAM and GPU, and keeps a setting only if recorded lines get the same answers. On the
   test machine it found nothing better than the defaults.
-- Not built: the fetch, decode, execute loop; draining the queue without being asked; a sandbox
+- The machine (`los/machine.py`): programs written as plain-language instructions, run with the
+  `decode` role, recorded cycle by cycle and replayable. `sys.health` is the first program, and
+  `trace` shows the latest run. `experiments/machine/` measured decode stability: identical inputs
+  gave identical micro-ops in 100 of 100 cycles.
+- Not built: remembering a program's constant instructions; conditionals and jumps; programs
+  written by the author model; draining the queue without being asked; a sandbox
   or enforced permissions for written commands; tests of what a written command does; one commit
   per install; optimizations proposed by a model; a search that uses the user's own labels as
   its record.
@@ -117,11 +129,14 @@ design, not yet confirmed) or **Open**.
 - Which student model. Gemma 4 26B-A4B passed the first test; nothing else of its size was tried.
 - Whether lo-s will be distributed to other people, which decides how strict the credential and
   permission rules must be.
-- The micro-op set beyond `set`, `call` and `halt`.
+- Whether the micro-op set needs more than `call`, `set` and `halt`, such as a conditional jump.
 - What the core contains on day one.
 
 ## Experiments
 
+- `experiments/machine/`: does each instruction of a program decode to the same micro-op every
+  time? Run on 2026-10-06; results are in its README. Identical inputs always gave the same
+  micro-op, and instructions that read no register or choose among fixed values never varied.
 - `experiments/dispatch/`: does the local model pick the same command as the teacher as the command
   table grows from 10 to 200 entries? Run on 2026-10-05; results are in its README. What it means
   for this spec:

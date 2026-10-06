@@ -49,12 +49,15 @@ The transcript is shortened; paths in the real output are absolute.
   model, in about a tenth of the time. A command that only reads then runs at once; one that
   changes anything still asks. `wrong` takes the latest such choice back, and `stats` shows how
   often memory answered. Memory holds for one version of the command table.
+- **A command can be a program**: a short list of plain-language instructions that the machine
+  runs one at a time. The local model turns each instruction into a single micro-op, and the
+  machine applies it. `sys.health` is the first one, and `trace` shows the steps of the latest run.
 - **Anything no command fits** is queued as a need. `needs` lists them.
 - **`teach NUMBER`** asks a stronger "teacher" model to write a command for a queued need. You see
   the whole proposal, code included, and nothing is installed unless you agree. The new command
   is then checked: the lines you accepted before must still reach the same commands, and the
   need's own line must reach the new one. If not, it is removed again.
-- There are seven starter commands, in the `fs`, `note` and `sys` plugins. `help` lists them.
+- There are eight starter commands, in the `fs`, `note` and `sys` plugins. `help` lists them.
 
 ## What the experiment found
 
@@ -128,6 +131,7 @@ of this repository: llama.cpp (MIT), NVIDIA's CUDA runtime libraries (NVIDIA's l
 - `plugins/`: the starter commands
 - `los.toml`: which provider fills which role
 - `experiments/dispatch/`: the dispatch experiment and its results
+- `experiments/machine/`: the decode stability experiment and its results
 - `scripts/`: runtime setup and measurements
 - `tests/`: run with `python3 -m unittest discover -s tests -t .`
 
