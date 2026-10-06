@@ -59,28 +59,32 @@ class Unsuitable(Exception):
     """This step's record cannot become a rule. The message says why."""
 
 
-def cases(name, step, program):
-    """The recorded cases for one step, as (register stored into, [(what the decoder was shown, value)])."""
+def cases(name, step, program, table, model):
+    """The recorded cases for one step, as (register stored into, [(what the decoder was shown, value)]).
+
+    A case counts only if memory holds its decode for the decoder as it is now: this model, this
+    prompt and this instruction. An answer recorded under an earlier wording of the decoder's
+    prompt is a different decoder's opinion and is left out.
+    """
     from . import machine   # imported here because machine imports this module
 
     instruction = program.instructions[step - 1]
+    known = {entry["key"]: entry["micro_op"] for entry in state.read("decodes")}
     found, register = {}, None
     for cycle in state.read("cycles"):
-        if (cycle["program"], cycle["step"], cycle["instruction"]) != (name, step, instruction) \
-                or cycle.get("how") == "rule":
+        if (cycle["program"], cycle["step"], cycle["instruction"]) != (name, step, instruction):
             continue
-        op = cycle["micro_op"]
+        shown = machine.visible(instruction, program, cycle["registers"])
+        op = known.get(machine.request(model, program, table, instruction, shown)[3])
+        if op is None:
+            continue
         if op["op"] != "set":
             raise Unsuitable("this step runs a command, and only a step that stores a value the model worked out "
                              "can become a rule")
         if register not in (None, op["register"]):
             raise Unsuitable("this step has stored into more than one register")
         register = op["register"]
-        shown = machine.visible(instruction, program, cycle["registers"])
-        key = json.dumps(shown, sort_keys=True)
-        if key in found and found[key][1] != op["value"]:
-            raise Unsuitable("the record holds two different answers for the same input")
-        found[key] = (shown, op["value"])
+        found[json.dumps(shown, sort_keys=True)] = (shown, op["value"])
     listed = [found[key] for key in sorted(found)]
     if len(listed) < MINIMUM:
         raise Unsuitable(f"only {len(listed)} different input(s) are on record for it, and a rule needs {MINIMUM}")

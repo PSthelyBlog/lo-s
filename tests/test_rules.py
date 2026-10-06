@@ -23,10 +23,18 @@ def rule(registers):
 '''
 
 
-def record(degrees, value, **changes):
-    state.append("cycles", {"run": "r", "program": "t.check", "step": 2, "instruction": JUDGE, "how": "model",
-                            "registers": {"temp": f"{degrees} C"}, "seconds": 2.0,
-                            "micro_op": {"op": "set", "register": "level", "value": value}, **changes})
+MODEL = Scripted()      # stands for the decoder: what matters here is its name
+
+
+def record(degrees, value, remembered=True, **changes):
+    """A recorded cycle and, unless told otherwise, the decode memory holds for the same input."""
+    cycle = {"run": "r", "program": "t.check", "step": 2, "instruction": JUDGE, "how": "model",
+             "registers": {"temp": f"{degrees} C"}, "seconds": 2.0,
+             "micro_op": {"op": "set", "register": "level", "value": value}, **changes}
+    state.append("cycles", cycle)
+    if remembered:
+        key = machine.request(MODEL, PROGRAM, TABLE, cycle["instruction"], cycle["registers"])[3]
+        state.append("decodes", {"key": key, "micro_op": cycle["micro_op"], "seconds": 2.0})
 
 
 def record_all():
@@ -40,13 +48,19 @@ def write(code=GOOD, reason="The line falls between 79 and 84."):
 
 class CasesTest(StateCase):
     def test_cases_are_the_distinct_inputs_recorded_for_this_exact_instruction(self):
-        record_all()
-        record(70, "fine")                                              # a repeat
-        record(60, "fine", instruction="An older wording.")             # another instruction
-        record(90, "worrying", how="rule")                              # an answer a rule gave
-        register, listed = rules.cases("t.check", 2, PROGRAM)
+        record(74, "worrying", remembered=False)        # recorded under an earlier decoder prompt: not in memory
+        record_all()                                    # includes 74 as fine, which is what memory holds
+        record(70, "fine")                              # a repeat
+        record(60, "fine", instruction="An older wording.")     # another instruction
+        record(90, "worrying", remembered=False, how="rule")    # an answer a rule gave, never decoded
+        register, listed = rules.cases("t.check", 2, PROGRAM, TABLE, MODEL)
         self.assertEqual((register, len(listed)), ("level", 8))
         self.assertIn(({"temp": "84 C"}, "worrying"), listed)
+        self.assertIn(({"temp": "74 C"}, "fine"), listed)
+        other = Scripted()
+        other.model = "another-decoder"
+        with self.assertRaises(rules.Unsuitable):       # nothing on record for a different decoder
+            rules.cases("t.check", 2, PROGRAM, TABLE, other)
         shown, held = rules.split(listed)
         self.assertEqual((len(shown), len(held)), (6, 2))
         self.assertEqual({value for _, value in shown}, {"fine", "worrying"})
@@ -54,7 +68,7 @@ class CasesTest(StateCase):
     def test_records_that_cannot_become_a_rule(self):
         def reason():
             with self.assertRaises(rules.Unsuitable) as caught:
-                rules.cases("t.check", 2, PROGRAM)
+                rules.cases("t.check", 2, PROGRAM, TABLE, MODEL)
             return str(caught.exception)
 
         record(70, "fine")
@@ -62,9 +76,8 @@ class CasesTest(StateCase):
         for degrees in range(60, 70):
             record(degrees, "fine")
         self.assertIn("every recorded answer is the same", reason())
-        record(70, "worrying")
-        self.assertIn("two different answers for the same input", reason())
         state.replace("cycles", [])
+        state.replace("decodes", [])
         record(70, "x", micro_op={"op": "call", "command": "t.read", "args": {}, "into": "temp"})
         self.assertIn("runs a command", reason())
 
@@ -155,11 +168,11 @@ class RuleCommandTest(ShellCase):
         self.assertIn("1 by rule", self.shown[-3])
         self.assertIn("set level = worrying  (rule)", self.shown[-1])
         shell.handle("stats")
-        self.assertIn("Answered by a rule: 1", self.shown[-1])
+        self.assertIn("Answered by a rule or a pin: 1", self.shown[-1])
 
     def test_a_rule_that_contradicts_a_held_back_case_is_refused(self):
         record_all()
-        shown, held = rules.split(rules.cases("t.check", 2, PROGRAM)[1])
+        shown, held = rules.split(rules.cases("t.check", 2, PROGRAM, TABLE, MODEL)[1])
         self.assertEqual([case[0]["temp"] for case in held], ["78 C", "86 C"])
         shell = self.shell_for(write(GOOD.replace("<= 79", "<= 74").replace(">= 84", ">= 75")), answers=[])
         shell.handle("rule t.check 2")                                      # it calls 78 worrying
@@ -188,3 +201,5 @@ class RuleCommandTest(ShellCase):
         self.assertIn("No model is set up to write rules", self.shown[-1])
         shell.handle("rules")
         self.assertEqual(self.shown[-1], "No rules are installed.")
+        shell.handle("help rule")
+        self.assertIn("rule PROGRAM STEP asks the author model", self.shown[-1])

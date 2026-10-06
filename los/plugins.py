@@ -28,6 +28,7 @@ class Program:
     registers: tuple            # the registers the program may use
     calls: tuple                # the commands it may call
     result: str                 # the register whose value is shown when it ends
+    pins: tuple = ()            # (step, what the decoder would be shown, micro-op): decodes fixed by the author
 
 
 @dataclasses.dataclass(frozen=True)
@@ -59,8 +60,10 @@ def load(directory):
                 raise ValueError(f"{name} is defined twice, the second time in {manifest.parent}")
             params = dict(entry.get("params", {}))
             if "program" in entry:
+                pins = tuple((pin["step"], dict(pin["registers"]), dict(pin["micro_op"]))
+                             for pin in entry.get("pins", []))
                 program = Program(tuple(entry["program"]), tuple(entry["registers"]),
-                                  tuple(entry.get("calls", [])), entry["result"])
+                                  tuple(entry.get("calls", [])), entry["result"], pins)
                 table[name] = Command(name, entry["description"], params, effect, program=program)
             else:
                 table[name] = Command(name, entry["description"], params, effect, getattr(module, f"do_{verb}"))
@@ -75,6 +78,10 @@ def _check_program(command, table):
     program = command.program
     if program.result not in program.registers or not set(command.params) <= set(program.registers):
         raise ValueError(f"{command.name}: its result and its parameters must be among its registers")
+    for step, shown, micro_op in program.pins:
+        if not 1 <= step <= len(program.instructions) or not set(shown) <= set(program.registers) \
+                or micro_op.get("op") != "set" or micro_op.get("register") not in program.registers:
+            raise ValueError(f"{command.name}: a pin must name a step, registers of the program, and a set micro-op")
     for name in program.calls:
         if name not in table or table[name].program:
             raise ValueError(f"{command.name} may only call commands written as code, and {name} is not one")

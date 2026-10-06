@@ -106,6 +106,19 @@ class MachineTest(StateCase):
             machine.run("tank.check", program, table(read), Scripted(micro(op="set", register="raw", value="{level}")),
                         remember=False)
 
+    def test_a_pinned_input_is_never_sent_to_the_decoder(self):
+        pinned = Program(PROGRAM.instructions[:2], PROGRAM.registers, PROGRAM.calls, "level",
+                         pins=((2, {"raw": "40 litres"}, {"op": "set", "register": "level", "value": "fine"}),))
+        model = Scripted(CALL)
+        self.assertEqual(machine.run("tank.check", pinned, table(), model), "fine")
+        self.assertEqual((model.calls, [cycle["how"] for cycle in state.read("cycles")]), (1, ["model", "pinned"]))
+        other = Scripted(RUN[1])                        # another reading is not pinned, so the model is asked
+        machine.run("tank.check", pinned, table(lambda **args: "90 litres"), other)
+        self.assertEqual((other.calls, state.read("cycles")[-1]["how"]), (1, "model"))
+        every = Scripted(CALL, RUN[1])                  # with memory off, the pin is not used either
+        machine.run("tank.check", pinned, table(), every, remember=False)
+        self.assertEqual(every.calls, 2)
+
     def test_schema_limits_commands_parameters_and_registers(self):
         schema = machine.schema(PROGRAM, table())
         for good in (CALL, RUN[1], micro(op="halt"), micro(op="call", command="tank.level", args={}, into="raw")):
