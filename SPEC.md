@@ -153,8 +153,9 @@ design, not yet confirmed) or **Open**.
 - Fresh answers: the local provider in `los.toml` turns the server's prompt cache off, and decode
   memory matches on the settings a request is sent with. `experiments/restart/` measured both
   changes: four starts with the fixed split gave the same 182 answers as the first.
-- Not built: noticing that the decoder is another one, such as after a new llama.cpp build or on
-  another machine; getting the prompt cache's speed back without its effect on answers; a
+- Not built: checking a split before it is repeated, which is now whatever the first start happened
+  to get; noticing that the decoder is another one, such as after a new split, a new llama.cpp build
+  or on another machine; getting the prompt cache's speed back without its effect on answers; a
   server-settings search that asks the way the shell now does; checks that a program's steps still
   decode as intended; suggesting a rule without being asked; a shorter micro-op encoding;
   conditionals and jumps; programs written by the author model; draining the queue without being
@@ -177,7 +178,8 @@ design, not yet confirmed) or **Open**.
   - A restart by itself changed nothing. Another split of the weights between RAM and GPU did:
     up to 6 of 116 answers, and it reproduced the wrong decode that led to pins.
   - llama.cpp chooses the split from the GPU memory free at start, so another program using the
-    GPU was enough to change answers.
+    GPU was enough to change answers. So was one that had stopped using it: with the GPU empty the
+    split was another one again, and it gave the same wrong decode.
   - What the server was asked before changed answers as well, through its prompt cache: 5 of 116
     when the same cases were asked in reverse.
   - With the split fixed and the cache off, an answer depended on the request alone. It costs
