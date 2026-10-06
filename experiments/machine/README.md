@@ -103,6 +103,47 @@ All four are right. An earlier wording of this instruction got the second row wr
 `{mem}` when only the temperature was worrying. It was just as repeatable as the correct one, and
 the mistake only showed because the stored lines are listed in the report.
 
+### A rule for the temperature judgement
+
+`rule sys.health 4` in the shell handed the recorded answers for step 4 to Claude Opus 5.5 and
+asked for a function that reproduces them. Eight different temperatures were on record. Six were
+shown to the author and two were held back to test what it wrote.
+
+```python
+import re
+
+
+def rule(registers):
+    text = registers.get("temp") if isinstance(registers, dict) else None
+    if not isinstance(text, str):
+        return None
+    m = re.fullmatch(r"Temperature: (\d+) °C at the hottest sensor \(acpitz\)", text.strip())
+    if not m:
+        return None
+    t = int(m.group(1))
+    if 20 <= t <= 78:
+        return "fine"
+    if 84 <= t <= 110:
+        return "worrying"
+    # 79-83 is not settled by the cases; outside 20-110 looks like a bad reading.
+    return None
+```
+
+- **It answers 20 to 78 °C as fine and 84 to 110 °C as worrying.** It returns nothing for 79 to
+  83 °C, for readings outside 20 to 110 °C, and for any other wording or sensor. The model is
+  asked in those cases, as before.
+- **It passed the test.** It gave the recorded answer for the six cases it was shown. Of the two
+  held back, it answered one correctly and left the other, 79 °C, to the model.
+- **The author also reviewed the answers.** It found them consistent, with the line somewhere
+  between 78 and 84 °C, and called that sensible for a machine in use. This is the first check
+  anything has made on whether the judgements are right, and it is one model's opinion of another's.
+- **With the rule installed, a run needed no model call**: four steps from memory and one by rule.
+
+The first attempt was refused, wrongly. The test then required the recorded answer for every
+case, and the author had left 79 °C unanswered because nothing it was shown settled it. Declining
+to answer is always safe, since the model is asked instead, so the test now refuses a rule only
+for contradicting a held-back case or for missing one it was shown.
+
 ## What it means
 
 - Decoding is repeatable enough to remember: nothing varied that did not have a reason to.
@@ -112,6 +153,8 @@ the mistake only showed because the stored lines are listed in the report.
 - Readings come from a small set of values, so memory fills in a judgement one value at a time.
 - A step with few possible inputs can be checked for every one of them, and should be whenever its
   wording changes.
+- A judgement over a range of values can become a rule that covers values nobody has judged yet.
+  The rule is only as right as the answers it was built from.
 
 ## Caveats
 
