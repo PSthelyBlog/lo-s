@@ -14,19 +14,9 @@ import sys
 
 HERE = pathlib.Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE.parent.parent))
-from dispatch import RESULTS, load_commands, load_lines  # noqa: E402  the experiment's module
+from dispatch import RESULTS, load_lines, table_of  # noqa: E402  the experiment's module
 from los import dispatch as shell_dispatch  # noqa: E402
 from los.models import OpenAICompat  # noqa: E402
-from los.plugins import Command  # noqa: E402
-
-
-def table_of(size):
-    """The experiment's first `size` commands as the shell's command table."""
-    table = {}
-    for name, description, *params in load_commands(size):
-        names = [p.strip() for p in params[0].split(",")] if params else []
-        table[name] = Command(name, description, dict.fromkeys(names, ""))
-    return table
 
 
 def main():
