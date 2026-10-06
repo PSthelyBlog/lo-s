@@ -120,8 +120,10 @@ def request(model, program, table, instruction, shown):
     """What the decoder is sent for one instruction, and the fingerprint of all of it."""
     system, form = system_prompt(program, table), schema(program, table)
     user = f"Instruction: {instruction}\nRegisters: {json.dumps(shown, ensure_ascii=False)}"
-    everything = json.dumps([model.provider, model.model, system, user, form], sort_keys=True)
-    return system, user, form, hashlib.sha256(everything.encode()).hexdigest()[:24]
+    everything = [model.provider, model.model, system, user, form]
+    if getattr(model, "extra", None):       # settings sent with every request can change the answer too
+        everything.append(model.extra)
+    return system, user, form, hashlib.sha256(json.dumps(everything, sort_keys=True).encode()).hexdigest()[:24]
 
 
 def decode(model, program, table, instruction, registers, known=None):

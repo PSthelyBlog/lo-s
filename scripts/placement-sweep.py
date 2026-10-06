@@ -7,6 +7,7 @@ llama.cpp choose the placement itself.
 
 Usage: placement-sweep.py MODEL.gguf N [N ...]
 """
+import os
 import pathlib
 import statistics
 import subprocess
@@ -32,7 +33,8 @@ def healthy():
 def measure(model, n):
     placement = [] if n == "auto" else ["-ngl", "all", "--n-cpu-moe", n]
     log = open(ROOT / "runtime" / f"sweep-{n}.log", "w")
-    server = subprocess.Popen([ROOT / "scripts" / "serve.sh", model, *placement], stdout=log, stderr=log)
+    server = subprocess.Popen([ROOT / "scripts" / "serve.sh", model, *placement], stdout=log, stderr=log,
+                              env={**os.environ, "LOS_NO_SPLIT": "1"})     # the placement is what is measured
     try:
         start = time.time()
         while not healthy():

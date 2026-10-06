@@ -95,7 +95,7 @@ def measure(model, args, table, record, headroom, port=8080, log=None):
     `record` is a list of (line, command, args) with the answers on file for this table.
     """
     result = Result(list(args))
-    environment = {**os.environ, "LOS_NO_TUNED": "1", "PORT": str(port)}
+    environment = {**os.environ, "LOS_NO_TUNED": "1", "LOS_NO_SPLIT": "1", "PORT": str(port)}
     server = subprocess.Popen([state.ROOT / "scripts" / "serve.sh", model, *args],
                               stdout=log, stderr=log, env=environment)
     try:
@@ -128,13 +128,20 @@ def tuned_file(model, folder=None):
 
 
 def apply(model, best, folder=None):
-    """Make serve.sh use the winning arguments for this model, or the defaults if they won."""
+    """Make serve.sh use the winning arguments for this model, or the defaults if they won.
+
+    When that changes what serve.sh uses, the split it has been repeating is dropped, because it
+    was chosen under the old arguments. The next start chooses one again.
+    """
     path = tuned_file(model, folder)
+    before = path.read_text() if path.exists() else ""
     if best.args:
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(" ".join(best.args) + "\n")
     elif path.exists():
         path.unlink()
+    if before != (path.read_text() if path.exists() else ""):
+        path.with_suffix(".split").unlink(missing_ok=True)
     return path
 
 

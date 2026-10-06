@@ -7,7 +7,8 @@ HERE="$(cd "$(dirname "$0")" && pwd)"
 tag="$1"; model="$2"; shift 2
 log="$HERE/results/$tag-server.log"
 
-"$HERE/../../scripts/serve.sh" "$model" "$@" > "$log" 2>&1 &
+# LOS_NO_SPLIT: the placement is the caller's to choose here, not the one serve.sh would repeat.
+LOS_NO_SPLIT=1 "$HERE/../../scripts/serve.sh" "$model" "$@" > "$log" 2>&1 &
 server=$!
 trap 'kill $server 2>/dev/null; wait $server 2>/dev/null || true' EXIT
 until curl -sf http://127.0.0.1:${PORT:-8080}/health > /dev/null; do
