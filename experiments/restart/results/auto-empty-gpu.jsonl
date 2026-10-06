@@ -1,0 +1,66 @@
+{"condition": "auto-empty-gpu", "start": 1, "replay": "fresh", "case": "dispatch, 10 commands, line 1", "answer": ["fs.find", {"path": "downloads"}]}
+{"condition": "auto-empty-gpu", "start": 1, "replay": "fresh", "case": "dispatch, 10 commands, line 2", "answer": ["fs.find", {"name": "*.pdf", "older_than": "1 year"}]}
+{"condition": "auto-empty-gpu", "start": 1, "replay": "fresh", "case": "dispatch, 10 commands, line 3", "answer": ["fs.find", {"name": "budget-2025"}]}
+{"condition": "auto-empty-gpu", "start": 1, "replay": "fresh", "case": "dispatch, 10 commands, line 4", "answer": ["fs.find", {"path": "~/Videos", "larger_than": "2 gigs"}]}
+{"condition": "auto-empty-gpu", "start": 1, "replay": "fresh", "case": "dispatch, 10 commands, line 5", "answer": ["fs.find", {"path": "/var/log", "older_than": "30 days"}]}
+{"condition": "auto-empty-gpu", "start": 1, "replay": "fresh", "case": "dispatch, 10 commands, line 6", "answer": ["none", {}]}
+{"condition": "auto-empty-gpu", "start": 1, "replay": "fresh", "case": "dispatch, 10 commands, line 7", "answer": ["fs.usage", {"path": "home"}]}
+{"condition": "auto-empty-gpu", "start": 1, "replay": "fresh", "case": "dispatch, 10 commands, line 8", "answer": ["fs.usage", {"path": "node_modules"}]}
+{"condition": "auto-empty-gpu", "start": 1, "replay": "fresh", "case": "dispatch, 10 commands, line 9", "answer": ["fs.usage", {"path": "~/Projects", "depth": "2"}]}
+{"condition": "auto-empty-gpu", "start": 1, "replay": "fresh", "case": "dispatch, 10 commands, line 10", "answer": ["fs.usage", {"path": "~/Pictures"}]}
+{"condition": "auto-empty-gpu", "start": 1, "replay": "fresh", "case": "dispatch, 10 commands, line 11", "answer": ["fs.usage", {"path": "/var"}]}
+{"condition": "auto-empty-gpu", "start": 1, "replay": "fresh", "case": "dispatch, 10 commands, line 12", "answer": ["fs.usage", {"path": "music collection"}]}
+{"condition": "auto-empty-gpu", "start": 1, "replay": "fresh", "case": "dispatch, 10 commands, line 13", "answer": ["fs.move", {"source": "report.txt", "dest": "report-final.txt"}]}
+{"condition": "auto-empty-gpu", "start": 1, "replay": "fresh", "case": "dispatch, 10 commands, line 14", "answer": ["fs.move", {"source": "notes.md", "dest": "archive folder"}]}
+{"condition": "auto-empty-gpu", "start": 1, "replay": "fresh", "case": "dispatch, 10 commands, line 15", "answer": ["fs.move", {"source": "~/Downloads/invoice.pdf", "dest": "~/Documents/taxes"}]}
+{"condition": "auto-empty-gpu", "start": 1, "replay": "fresh", "case": "dispatch, 10 commands, line 16", "answer": ["fs.move", {"source": "site", "dest": "old-site"}]}
+{"condition": "auto-empty-gpu", "start": 1, "replay": "fresh", "case": "dispatch, 10 commands, line 17", "answer": ["fs.move", {"source": "screenshots", "dest": "/mnt/usb/screenshots"}]}
+{"condition": "auto-empty-gpu", "start": 1, "replay": "fresh", "case": "dispatch, 10 commands, line 18", "answer": ["fs.move", {"source": "draft1.docx", "dest": "proposal.docx"}]}
+{"condition": "auto-empty-gpu", "start": 1, "replay": "fresh", "case": "dispatch, 10 commands, line 19", "answer": ["proc.list", {}]}
+{"condition": "auto-empty-gpu", "start": 1, "replay": "fresh", "case": "dispatch, 10 commands, line 20", "answer": ["proc.list", {"sort_by": "memory"}]}
+{"condition": "auto-empty-gpu", "start": 1, "replay": "fresh", "case": "dispatch, 10 commands, line 21", "answer": ["proc.list", {"filter": "firefox"}]}
+{"condition": "auto-empty-gpu", "start": 1, "replay": "fresh", "case": "dispatch, 10 commands, line 22", "answer": ["proc.list", {"sort_by": "cpu"}]}
+{"condition": "auto-empty-gpu", "start": 1, "replay": "fresh", "case": "dispatch, 10 commands, line 23", "answer": ["proc.list", {"sort_by": "cpu"}]}
+{"condition": "auto-empty-gpu", "start": 1, "replay": "fresh", "case": "dispatch, 10 commands, line 24", "answer": ["proc.list", {"filter": "python"}]}
+{"condition": "auto-empty-gpu", "start": 1, "replay": "fresh", "case": "dispatch, 10 commands, line 25", "answer": ["proc.kill", {"target": "3000"}]}
+{"condition": "auto-empty-gpu", "start": 1, "replay": "fresh", "case": "dispatch, 10 commands, line 26", "answer": ["proc.kill", {"target": "firefox"}]}
+{"condition": "auto-empty-gpu", "start": 1, "replay": "fresh", "case": "dispatch, 10 commands, line 27", "answer": ["proc.kill", {"target": "48213"}]}
+{"condition": "auto-empty-gpu", "start": 1, "replay": "fresh", "case": "dispatch, 10 commands, line 28", "answer": ["proc.kill", {"target": "node server"}]}
+{"condition": "auto-empty-gpu", "start": 1, "replay": "fresh", "case": "dispatch, 10 commands, line 29", "answer": ["proc.kill", {"target": "8080"}]}
+{"condition": "auto-empty-gpu", "start": 1, "replay": "fresh", "case": "dispatch, 10 commands, line 30", "answer": ["proc.kill", {"target": "slack"}]}
+{"condition": "auto-empty-gpu", "start": 1, "replay": "fresh", "case": "dispatch, 10 commands, line 31", "answer": ["net.fetch", {"url": "https://example.com/data.csv"}]}
+{"condition": "auto-empty-gpu", "start": 1, "replay": "fresh", "case": "dispatch, 10 commands, line 32", "answer": ["net.fetch", {"url": "https://example.org/setup.sh", "output": "install.sh"}]}
+{"condition": "auto-empty-gpu", "start": 1, "replay": "fresh", "case": "dispatch, 10 commands, line 33", "answer": ["net.fetch", {"url": "https://example.com/logo.png", "output": "~/Pictures"}]}
+{"condition": "auto-empty-gpu", "start": 1, "replay": "fresh", "case": "dispatch, 10 commands, line 34", "answer": ["net.fetch", {"url": "https://example.net/report.pdf"}]}
+{"condition": "auto-empty-gpu", "start": 1, "replay": "fresh", "case": "dispatch, 10 commands, line 35", "answer": ["net.fetch", {"url": "https://example.com/archive.tar.gz"}]}
+{"condition": "auto-empty-gpu", "start": 1, "replay": "fresh", "case": "dispatch, 10 commands, line 36", "answer": ["net.fetch", {"url": "https://example.com/ubuntu.iso"}]}
+{"condition": "auto-empty-gpu", "start": 1, "replay": "fresh", "case": "dispatch, 10 commands, line 37", "answer": ["net.ping", {"host": "github.com"}]}
+{"condition": "auto-empty-gpu", "start": 1, "replay": "fresh", "case": "dispatch, 10 commands, line 38", "answer": ["net.ping", {"host": "192.168.1.1"}]}
+{"condition": "auto-empty-gpu", "start": 1, "replay": "fresh", "case": "dispatch, 10 commands, line 39", "answer": ["net.ping", {"host": "example.com"}]}
+{"condition": "auto-empty-gpu", "start": 1, "replay": "fresh", "case": "dispatch, 10 commands, line 40", "answer": ["none", {}]}
+{"condition": "auto-empty-gpu", "start": 1, "replay": "fresh", "case": "dispatch, 10 commands, line 41", "answer": ["net.ping", {"host": "10.0.0.42"}]}
+{"condition": "auto-empty-gpu", "start": 1, "replay": "fresh", "case": "dispatch, 10 commands, line 42", "answer": ["net.ping", {"host": "cloudflare.com"}]}
+{"condition": "auto-empty-gpu", "start": 1, "replay": "fresh", "case": "dispatch, 10 commands, line 43", "answer": ["remind.add", {"when": "20 minutes", "text": "check the oven"}]}
+{"condition": "auto-empty-gpu", "start": 1, "replay": "fresh", "case": "dispatch, 10 commands, line 44", "answer": ["remind.add", {"when": "tomorrow at 9", "text": "call the dentist"}]}
+{"condition": "auto-empty-gpu", "start": 1, "replay": "fresh", "case": "dispatch, 10 commands, line 45", "answer": ["remind.add", {"when": "14:30", "text": "standup"}]}
+{"condition": "auto-empty-gpu", "start": 1, "replay": "fresh", "case": "dispatch, 10 commands, line 46", "answer": ["remind.add", {"when": "friday afternoon", "text": "the tax form"}]}
+{"condition": "auto-empty-gpu", "start": 1, "replay": "fresh", "case": "dispatch, 10 commands, line 47", "answer": ["remind.add", {"when": "next monday", "text": "renew passport"}]}
+{"condition": "auto-empty-gpu", "start": 1, "replay": "fresh", "case": "dispatch, 10 commands, line 48", "answer": ["remind.add", {"when": "in two hours", "text": "stretch"}]}
+{"condition": "auto-empty-gpu", "start": 1, "replay": "fresh", "case": "dispatch, 10 commands, line 49", "answer": ["none", {}]}
+{"condition": "auto-empty-gpu", "start": 1, "replay": "fresh", "case": "dispatch, 10 commands, line 50", "answer": ["note.add", {"text": "the meeting moved to room 4"}]}
+{"condition": "auto-empty-gpu", "start": 1, "replay": "fresh", "case": "decode, step 1, {}", "answer": {"op": "call", "command": "sys.status", "args": {"what": "memory"}, "into": "mem"}}
+{"condition": "auto-empty-gpu", "start": 1, "replay": "fresh", "case": "decode, step 2, {}", "answer": {"op": "call", "command": "sys.status", "args": {"what": "temperature"}, "into": "temp"}}
+{"condition": "auto-empty-gpu", "start": 1, "replay": "fresh", "case": "decode, step 3, {\"mem\": \"Memory: 25.5 GB available of 30.8 GB\"}", "answer": {"op": "set", "register": "mem_level", "value": "fine"}}
+{"condition": "auto-empty-gpu", "start": 1, "replay": "fresh", "case": "decode, step 3, {\"mem\": \"Memory: 25.6 GB available of 30.8 GB\"}", "answer": {"op": "set", "register": "mem_level", "value": "fine"}}
+{"condition": "auto-empty-gpu", "start": 1, "replay": "fresh", "case": "decode, step 4, {\"temp\": \"Temperature: 72 \\u00b0C at the hottest sensor (acpitz)\"}", "answer": {"op": "set", "register": "temp_level", "value": "fine"}}
+{"condition": "auto-empty-gpu", "start": 1, "replay": "fresh", "case": "decode, step 4, {\"temp\": \"Temperature: 78 \\u00b0C at the hottest sensor (acpitz)\"}", "answer": {"op": "set", "register": "temp_level", "value": "fine"}}
+{"condition": "auto-empty-gpu", "start": 1, "replay": "fresh", "case": "decode, step 4, {\"temp\": \"Temperature: 79 \\u00b0C at the hottest sensor (acpitz)\"}", "answer": {"op": "set", "register": "temp_level", "value": "fine"}}
+{"condition": "auto-empty-gpu", "start": 1, "replay": "fresh", "case": "decode, step 4, {\"temp\": \"Temperature: 84 \\u00b0C at the hottest sensor (acpitz)\"}", "answer": {"op": "set", "register": "temp_level", "value": "worrying"}}
+{"condition": "auto-empty-gpu", "start": 1, "replay": "fresh", "case": "decode, step 4, {\"temp\": \"Temperature: 85 \\u00b0C at the hottest sensor (acpitz)\"}", "answer": {"op": "set", "register": "temp_level", "value": "worrying"}}
+{"condition": "auto-empty-gpu", "start": 1, "replay": "fresh", "case": "decode, step 4, {\"temp\": \"Temperature: 86 \\u00b0C at the hottest sensor (acpitz)\"}", "answer": {"op": "set", "register": "temp_level", "value": "worrying"}}
+{"condition": "auto-empty-gpu", "start": 1, "replay": "fresh", "case": "decode, step 4, {\"temp\": \"Temperature: 87 \\u00b0C at the hottest sensor (acpitz)\"}", "answer": {"op": "set", "register": "temp_level", "value": "worrying"}}
+{"condition": "auto-empty-gpu", "start": 1, "replay": "fresh", "case": "decode, step 4, {\"temp\": \"Temperature: 88 \\u00b0C at the hottest sensor (acpitz)\"}", "answer": {"op": "set", "register": "temp_level", "value": "worrying"}}
+{"condition": "auto-empty-gpu", "start": 1, "replay": "fresh", "case": "decode, step 5, {\"mem_level\": \"fine\", \"temp_level\": \"fine\"}", "answer": {"op": "set", "register": "verdict", "value": "The machine looks healthy."}}
+{"condition": "auto-empty-gpu", "start": 1, "replay": "fresh", "case": "decode, step 5, {\"mem_level\": \"fine\", \"temp_level\": \"worrying\"}", "answer": {"op": "set", "register": "verdict", "value": "Worrying: {mem} if mem_level is worrying and {temp} if temp_level is worrying, separated by a semicolon"}}
+{"condition": "auto-empty-gpu", "start": 1, "replay": "fresh", "case": "decode, step 5, {\"mem_level\": \"worrying\", \"temp_level\": \"fine\"}", "answer": {"op": "set", "register": "verdict", "value": "Worrying: {mem}"}}
+{"condition": "auto-empty-gpu", "start": 1, "replay": "fresh", "case": "decode, step 5, {\"mem_level\": \"worrying\", \"temp_level\": \"worrying\"}", "answer": {"op": "set", "register": "verdict", "value": "Worrying: {mem}; {temp}"}}

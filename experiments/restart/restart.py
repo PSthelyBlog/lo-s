@@ -155,23 +155,23 @@ def report():
         for row in rows:
             given[row["condition"], row["start"], row["replay"]][row["case"]] = row["answer"]
     first = starts["auto"][0]
-    order = sorted(starts, key=lambda name: (starts[name][0]["fixed"], starts[name][0]["held"]))
+    order = sorted(starts, key=lambda name: (starts[name][0]["fixed"], starts[name][0]["held"], name))
 
     def differing(one, other):
         return [case for case in one if case in other and one[case] != other[case]]
 
     def against_first(name, number, replay):
         mine, reference = given[name, number, replay], given["auto", 1, replay]
-        return f"{len(differing(reference, mine))} of {len(reference)}"
+        return f"{len(differing(reference, mine))} of {len(reference)}" if mine else "not asked"
 
     print("### Each start\n")
-    print("Answers are compared with those of the first start: nothing fixed, GPU otherwise free.\n")
+    print("Answers are compared with those of the first start with nothing fixed.\n")
     print("| Condition | Start | GPU MiB free before the server | Weights on the GPU, MiB | Same split as the first | "
           "Cached answers that differ | Fresh answers that differ |")
     print("|---|---|---|---|---|---|---|")
     for name in order:
         for about in starts[name]:
-            free = about.get("gpu_free_held", about["gpu_free_before"])
+            free = about.get("gpu_free_held", about["gpu_free_before"]) or "not recorded"
             if not about["started"]:
                 print(f"| {name} | {about['start']} | {free} | did not start | | | |")
                 continue
@@ -193,7 +193,8 @@ def report():
     for rows in answers.values():
         for row in rows:
             kind = "decode" if row["case"].startswith("decode") else row["case"].rsplit(",", 1)[0]
-            seconds[kind, row["replay"].split(",")[0]].append(row["seconds"])
+            if "seconds" in row:
+                seconds[kind, row["replay"].split(",")[0]].append(row["seconds"])
     recorded = [json.loads(row)["meta"]["seconds"] for row in
                 (DISPATCHED / f"shell-gemma4-26b-{FRESH}.jsonl").read_text().splitlines()[:FRESH_LINES]]
     seconds[f"dispatch, {FRESH} commands", "cached"] = recorded     # timed by the dispatch experiment, cache on

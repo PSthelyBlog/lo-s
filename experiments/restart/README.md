@@ -12,8 +12,13 @@ The machine experiment ended on a fault: after a restart of the server, the last
   dispatch lines at 10 commands, and the 16 inputs the steps of `sys.health` have been decoded
   for, the four pinned inputs of its last step among them.
 - **Conditions.** The server is started with nothing fixed, so that llama.cpp splits the weights
-  between RAM and GPU itself, or with a fixed split. The GPU is otherwise free, or another program
-  holds some of its memory (`hold-gpu.py`, which takes about 140 MiB more than it is asked for).
+  between RAM and GPU itself, or with a fixed split. Another program holds some of the GPU's
+  memory, or does not (`hold-gpu.py`, which takes about 140 MiB more than it is asked for).
+- **The GPU was never empty during the run.** A program that was not part of the experiment held
+  266 MiB of its memory throughout. "Nothing held" below means nothing but that.
+- **One start was added afterwards, with the GPU empty** (`auto-empty-gpu`). It is the server of
+  another copy of lo-s on the same machine, whose first start happened while that program was not
+  running. It was asked the fresh cases only, through the experiment's own functions.
 - **Cached replay.** Every start is asked the lines at 200 commands and the decodes, in the same
   order, with the server's prompt cache on. This is how the shell asked until now. The first
   start is then asked the same cases in reverse order.
@@ -46,14 +51,16 @@ In short:
 
 - **Two things changed answers: where the weights sat, and what the server had been asked
   before.** A restart by itself changed nothing.
-- **The split follows the GPU memory free at start.** With the GPU free, llama.cpp kept the
+- **The split follows the GPU memory free at start.** With nothing held, llama.cpp kept the
   expert weights of layers 10 to 29 in RAM. With another program holding 640 MiB it kept those of
-  layers 8 to 29, and with 1640 MiB held, those of layers 6 to 29.
+  layers 8 to 29, and with 1640 MiB held, those of layers 6 to 29. With the GPU empty, 266 MiB
+  freer than "nothing held", it left one more tensor of layer 10's experts on the GPU.
 - **Another split gave other answers**: 4 and 6 of 116 with the cache on, 1 and 2 of 66 with it
   off.
-- **The fault of the machine experiment came back exactly.** With 1640 MiB held, the last step of
-  `sys.health` decoded "memory fine, temperature worrying" as the instruction's own wording. So
-  its cause was the split.
+- **The fault of the machine experiment came back exactly, under two splits.** With 1640 MiB held,
+  and again with the GPU empty, the last step of `sys.health` decoded "memory fine, temperature
+  worrying" as the instruction's own wording. So its cause was the split, and a freer GPU is no
+  safer than a fuller one.
 - **The order of the questions changed answers too.** Within one start, with one split, 5 of 116
   cached answers differed when the cases were asked in reverse. One line went from `fs.move` to
   no command at all.
@@ -68,12 +75,13 @@ In short:
 
 ### Each start
 
-Answers are compared with those of the first start: nothing fixed, GPU otherwise free.
+Answers are compared with those of the first start with nothing fixed.
 
 | Condition | Start | GPU MiB free before the server | Weights on the GPU, MiB | Same split as the first | Cached answers that differ | Fresh answers that differ |
 |---|---|---|---|---|---|---|
 | auto | 1 | 7562 | 5580 | yes | 0 of 116 | 0 of 66 |
 | auto | 2 | 7562 | 5580 | yes | 0 of 116 | 0 of 66 |
+| auto-empty-gpu | 1 | not recorded | 5857 | no | not asked | 1 of 66 |
 | auto-held-500 | 1 | 6919 | 4763 | no | 4 of 116 | 1 of 66 |
 | auto-held-1500 | 1 | 5919 | 3947 | no | 6 of 116 | 2 of 66 |
 | fixed | 1 | 7562 | 5580 | yes | 0 of 116 | 0 of 66 |
@@ -85,6 +93,9 @@ Answers are compared with those of the first start: nothing fixed, GPU otherwise
 The first start's cached answers are also the ones the earlier experiments recorded, all 116.
 Its fresh answers differ from the record on one dispatch line, which was recorded with the cache
 on.
+
+For the start with the GPU empty, llama.cpp's own log gives the memory it found free: 7,692 MiB,
+against 7,418 MiB for the starts with nothing held.
 
 ### The same start, asked in another order
 
@@ -141,13 +152,17 @@ seconds to work out.
   - `["fs.usage", {"path": "home directory"}]`: auto-held-1500 1; auto-held-500 1
 - decode, step 5, {"mem_level": "fine", "temp_level": "worrying"} (fresh)
   - first start: `{"op": "set", "register": "verdict", "value": "Worrying: {temp}"}`
-  - `{"op": "set", "register": "verdict", "value": "Worrying: {mem} if mem_level is worrying and {temp} if temp_level is worrying, separated by a semicolon"}`: auto-held-1500 1
+  - `{"op": "set", "register": "verdict", "value": "Worrying: {mem} if mem_level is worrying and {temp} if temp_level is worrying, separated by a semicolon"}`: auto-empty-gpu 1; auto-held-1500 1
 
 ## What it means
 
 - The split is now chosen once and repeated. `scripts/fix-split.py` reads from the server's log
   where llama.cpp put each tensor, and `scripts/serve.sh` starts the server with exactly that.
   When the split no longer fits, the server does not start.
+- Which split gets repeated is whatever the GPU's state gave at the first start, and nothing
+  checks it. The two copies of lo-s on the test machine now repeat different splits, and one of
+  them decodes the last step of `sys.health` wrongly when asked. In use that step is pinned, so
+  the decoder is never asked for it.
 - The local model is now asked with the prompt cache off (`extra` in `los.toml`). The cache is an
   optimization that changes answers, which the spec does not allow an optimization to do.
 - With both, an answer depended on the request alone in every start measured here. A decode
@@ -162,7 +177,10 @@ seconds to work out.
 
 - One machine, one model, one llama.cpp build. Another GPU, driver or build is another decoder,
   and nothing notices that yet.
-- Few starts: two with nothing fixed, four with the fixed split, one for each held size.
+- Few starts: two with nothing fixed, four with the fixed split, one for each held size and one
+  with the GPU empty.
+- Every answer on record from the earlier experiments was made with the same 266 MiB held, so
+  under the split that "nothing held" gives. That split is the measured one, not a better one.
 - The same answer is not the right answer. The fixed split repeats the first start's answers,
   mistakes included.
 - Fresh answers were checked on 66 cases, with prompts of 400 to 500 tokens.
