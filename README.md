@@ -98,6 +98,13 @@ scripts/serve.sh gemma-4-26B-A4B-it-qat-q4_0.gguf     # leave running in another
 `scripts/setup-runtime.sh` with no arguments also fetches the smaller model used in the
 experiment. Nothing is installed outside the `runtime/` folder; delete it to undo.
 
+The first time `serve.sh` serves a model it starts it twice: once to see which weights llama.cpp
+puts on the GPU and which in RAM, and then for real. That split is written to
+`runtime/tuned/MODEL.split` and repeated at every later start, because another split gives other
+answers. If another program has taken too much GPU memory for it, the server stops with an
+out-of-memory error instead. Free some GPU memory, or run `scripts/fix-split.py MODEL.gguf` to
+choose a split again.
+
 `scripts/tune-server.py MODEL.gguf` searches for faster server settings on your machine. It keeps
 a setting only if recorded lines still get the same answers, and `serve.sh` then uses the winner.
 On the test machine nothing beat the defaults.
@@ -136,6 +143,7 @@ of this repository: llama.cpp (MIT), NVIDIA's CUDA runtime libraries (NVIDIA's l
 - `los.toml`: which provider fills which role
 - `experiments/dispatch/`: the dispatch experiment and its results
 - `experiments/machine/`: the decode stability experiment and its results
+- `experiments/restart/`: the restart experiment and its results
 - `scripts/`: runtime setup and measurements
 - `tests/`: run with `python3 -m unittest discover -s tests -t .`
 

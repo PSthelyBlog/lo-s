@@ -29,12 +29,17 @@ experiments/machine/stability.py sys.health --report     # the report again, fro
 experiments/machine/step.py sys.health 5 mem_level=fine,worrying temp_level=fine,worrying
 ```
 
+`stability.py` asks the server directly, with its prompt cache on, as the shell did when these
+results were made. `step.py` asks the way the shell asks now (see `los.toml`).
+
 ## Results, 2026-10-06 (Gemma 4 26B-A4B)
 
 In short:
 
 - **Identical inputs gave identical micro-ops**, in all 100 frozen cycles. This held within one
-  start of the model server, and did not hold across a restart (see the last step, below).
+  start of the model server, for runs that asked in the same order every time. It did not hold
+  across a restart (see the last step, below), and the restart experiment later found that it
+  does not hold across another order of questions either.
 - **The two `call` steps are constants.** They name no register that holds anything, so their input
   never changes and neither does their micro-op.
 - **A judgement follows its reading.** Memory was always judged fine. The temperature took 8 values
@@ -108,9 +113,11 @@ the mistake only showed because the stored lines are listed in the report.
 file, the same instruction and the same input, the second row came back as the instruction's own
 wording: `Worrying: {mem} if mem_level is worrying and {temp} if temp_level is worrying, separated
 by a semicolon`. Memory then repeated it on every run. What differed between the two server starts
-was not measured. The likeliest cause is how the layers were split between RAM and GPU, which
+was not measured at the time. The guess was how the layers were split between RAM and GPU, which
 llama.cpp decides from the GPU memory free at start, and another program was using the GPU the
-second time.
+second time. The [restart experiment](../restart/README.md) confirmed it: with 1,640 MiB of GPU
+memory held by another program the same wrong micro-op came back, and with the split fixed it
+did not.
 
 The four cases are now pinned in the program: the micro-op for each is written in `plugin.toml`
 and the decoder is never asked. A step that only arranges a few known values should not depend
@@ -180,5 +187,7 @@ for contradicting a held-back case or for missing one it was shown.
 - The check heats the machine it is checking: while every step went to the model the temperature
   sat at 84 to 88 °C.
 - A remembered decode is as old as the server start it was made under. A restart changed one
-  answer, and memory does not notice a restart.
+  answer, and memory does not notice a restart. Since the restart experiment the split is fixed
+  and the server is asked with its prompt cache off, so a restart no longer changes answers on
+  this machine. Memory still does not notice another machine or another llama.cpp build.
 - The rule was built from answers recorded under one server start.

@@ -70,13 +70,15 @@ class MachineTest(StateCase):
         machine.run("tank.check", PROGRAM, table(lambda **args: "90 litres"), fuller)
         self.assertEqual(fuller.calls, 2)
         self.assertEqual([cycle["how"] for cycle in state.read("cycles")[3:]], ["memory", "model", "model"])
-        # Another model, or memory switched off, asks again from the start.
-        other = Scripted(*RUN)
-        other.model = "another-model"
+        # Another model, the same model asked with other settings, or memory switched off, asks
+        # again from the start.
+        other, asked_differently = Scripted(*RUN), Scripted(*RUN)
+        other.model, asked_differently.extra = "another-model", {"cache_prompt": False}
         machine.run("tank.check", PROGRAM, table(), other)
+        machine.run("tank.check", PROGRAM, table(), asked_differently)
         unremembered = Scripted(*RUN)
         machine.run("tank.check", PROGRAM, table(), unremembered, remember=False)
-        self.assertEqual((other.calls, unremembered.calls), (3, 3))
+        self.assertEqual((other.calls, asked_differently.calls, unremembered.calls), (3, 3, 3))
 
     def test_a_register_in_braces_is_filled_in_by_the_machine_and_not_shown_to_the_decoder(self):
         program = Program(("Read the level and store it in `raw`.",

@@ -1,0 +1,1 @@
+{"condition": "fixed-held-1500", "start": 1, "fixed": true, "held": 1500, "gpu_free_before": 7562, "gpu_free_held": 5919, "started": false, "error": "ggml_backend_cuda_buffer_type_alloc_buffer: allocating 160.00 MiB on device 0: cudaMalloc failed: out of memory"}

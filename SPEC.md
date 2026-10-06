@@ -25,7 +25,8 @@ design, not yet confirmed) or **Open**.
   machine fills in what the register holds. The fewer registers a decode reads, the more often
   memory can answer it.
 - **Proposed.** A decode is remembered. When everything the decoder would be shown has been seen
-  before, with the same model, the recorded micro-op is used and the model is not asked.
+  before, with the same model asked with the same settings, the recorded micro-op is used and the
+  model is not asked.
 - **Proposed.** A program can pin the micro-op for a given input of a step. A pinned input is never
   sent to the decoder. A step that only arranges a few known values should be pinned for all of
   them. Pins come first, then rules, then memory, then the model.
@@ -84,6 +85,12 @@ design, not yet confirmed) or **Open**.
   never reads, stores or sends that login.
 - **Proposed.** Every label records its provider, model and date, and is asked for once, then
   replayed.
+- **Proposed.** The student's answer depends on the request alone: not on when the server was
+  started, and not on what it was asked before. Two things follow.
+  - Which weights sit on the GPU is chosen once and repeated at every start. When that split no
+    longer fits, the server does not start, rather than start with another one.
+  - The student is asked with the server's prompt cache off. Reusing work from earlier requests
+    is an optimization that changed answers, so it has to pass the same test as any other.
 
 ## Self-optimization
 
@@ -132,7 +139,7 @@ design, not yet confirmed) or **Open**.
 - The machine (`los/machine.py`): programs written as plain-language instructions, run with the
   `decode` role, recorded cycle by cycle and replayable. `sys.health` is the first program, and
   `trace` shows the latest run. `experiments/machine/` measured decode stability: identical inputs
-  gave identical micro-ops in 100 of 100 cycles.
+  gave identical micro-ops in 100 of 100 cycles, asked in the same order within one server start.
 - Memory for instructions: `sys.health` went from 8.6 seconds in the decoder to 0.5 on average
   over 20 runs, with 94 of 100 decodes answered from memory.
 - Registers passed along in braces, filled in by the machine without the decoder reading them.
@@ -141,14 +148,19 @@ design, not yet confirmed) or **Open**.
   leaves the rest to the model.
 - Pins: the last step of `sys.health` is pinned for its four inputs, after a restarted server
   decoded one of them wrongly.
-- Not built: making the decoder the same from one server start to the next, or noticing when it
-  is not; checks that a program's steps still decode as intended; suggesting a rule without being
-  asked; a shorter micro-op encoding; conditionals
-  and jumps; programs
-  written by the author model; draining the queue without being asked; a sandbox
-  or enforced permissions for written commands; tests of what a written command does; one commit
-  per install; optimizations proposed by a model; a search that uses the user's own labels as
-  its record.
+- A fixed split (`los/split.py`, `scripts/fix-split.py`): the first time `scripts/serve.sh` serves a
+  model it records where llama.cpp put the weights, and every later start repeats that.
+- Fresh answers: the local provider in `los.toml` turns the server's prompt cache off, and decode
+  memory matches on the settings a request is sent with. `experiments/restart/` measured both
+  changes: four starts with the fixed split gave the same 182 answers as the first.
+- Not built: noticing that the decoder is another one, such as after a new llama.cpp build or on
+  another machine; getting the prompt cache's speed back without its effect on answers; a
+  server-settings search that asks the way the shell now does; checks that a program's steps still
+  decode as intended; suggesting a rule without being asked; a shorter micro-op encoding;
+  conditionals and jumps; programs written by the author model; draining the queue without being
+  asked; a sandbox or enforced permissions for written commands; tests of what a written command
+  does; one commit per install; optimizations proposed by a model; a search that uses the user's own
+  labels as its record.
 
 ## Open
 
@@ -160,6 +172,16 @@ design, not yet confirmed) or **Open**.
 
 ## Experiments
 
+- `experiments/restart/`: does the server give the same answers after a restart? Run on 2026-10-06;
+  results are in its README. What it means for this spec:
+  - A restart by itself changed nothing. Another split of the weights between RAM and GPU did:
+    up to 6 of 116 answers, and it reproduced the wrong decode that led to pins.
+  - llama.cpp chooses the split from the GPU memory free at start, so another program using the
+    GPU was enough to change answers.
+  - What the server was asked before changed answers as well, through its prompt cache: 5 of 116
+    when the same cases were asked in reverse.
+  - With the split fixed and the cache off, an answer depended on the request alone. It costs
+    about 1.3 seconds more per model call.
 - `experiments/machine/`: does each instruction of a program decode to the same micro-op every
   time, and how much can memory take over? Run on 2026-10-06; results are in its README.
   Identical inputs always gave the same micro-op, and memory answered 94 of 100 decodes.

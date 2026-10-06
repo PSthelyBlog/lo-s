@@ -1,0 +1,182 @@
+{"condition": "auto-held-1500", "start": 1, "replay": "cached", "case": "dispatch, 200 commands, line 1", "answer": ["fs.find", {"path": "downloads", "larger_than": ""}], "seconds": 10.24}
+{"condition": "auto-held-1500", "start": 1, "replay": "cached", "case": "dispatch, 200 commands, line 2", "answer": ["fs.find", {"path": ".", "older_than": "1 year"}], "seconds": 1.37}
+{"condition": "auto-held-1500", "start": 1, "replay": "cached", "case": "dispatch, 200 commands, line 3", "answer": ["fs.find", {"path": ".", "name": "budget-2025"}], "seconds": 1.38}
+{"condition": "auto-held-1500", "start": 1, "replay": "cached", "case": "dispatch, 200 commands, line 4", "answer": ["fs.find", {"path": "~/Videos", "larger_than": "2GB"}], "seconds": 1.36}
+{"condition": "auto-held-1500", "start": 1, "replay": "cached", "case": "dispatch, 200 commands, line 5", "answer": ["fs.find", {"path": "/var/log", "older_than": "30 days"}], "seconds": 1.49}
+{"condition": "auto-held-1500", "start": 1, "replay": "cached", "case": "dispatch, 200 commands, line 6", "answer": ["fs.find", {"path": "/", "name": "*.mkv"}], "seconds": 1.25}
+{"condition": "auto-held-1500", "start": 1, "replay": "cached", "case": "dispatch, 200 commands, line 7", "answer": ["fs.usage", {"path": "/home"}], "seconds": 1.12}
+{"condition": "auto-held-1500", "start": 1, "replay": "cached", "case": "dispatch, 200 commands, line 8", "answer": ["fs.usage", {"path": "node_modules"}], "seconds": 1.16}
+{"condition": "auto-held-1500", "start": 1, "replay": "cached", "case": "dispatch, 200 commands, line 9", "answer": ["fs.usage", {"path": "~/Projects", "depth": "2"}], "seconds": 1.32}
+{"condition": "auto-held-1500", "start": 1, "replay": "cached", "case": "dispatch, 200 commands, line 10", "answer": ["fs.usage", {"path": "~/Pictures"}], "seconds": 1.07}
+{"condition": "auto-held-1500", "start": 1, "replay": "cached", "case": "dispatch, 200 commands, line 11", "answer": ["fs.usage", {"path": "/var"}], "seconds": 1.09}
+{"condition": "auto-held-1500", "start": 1, "replay": "cached", "case": "dispatch, 200 commands, line 12", "answer": ["fs.usage", {"path": "music"}], "seconds": 1.11}
+{"condition": "auto-held-1500", "start": 1, "replay": "cached", "case": "dispatch, 200 commands, line 13", "answer": ["fs.move", {"source": "report.txt", "dest": "report-final.txt"}], "seconds": 1.42}
+{"condition": "auto-held-1500", "start": 1, "replay": "cached", "case": "dispatch, 200 commands, line 14", "answer": ["fs.move", {"source": "notes.md", "dest": "archive"}], "seconds": 1.3}
+{"condition": "auto-held-1500", "start": 1, "replay": "cached", "case": "dispatch, 200 commands, line 15", "answer": ["fs.move", {"source": "~/Downloads/invoice.pdf", "dest": "~/Documents/taxes"}], "seconds": 1.46}
+{"condition": "auto-held-1500", "start": 1, "replay": "cached", "case": "dispatch, 200 commands, line 16", "answer": ["none", {}], "seconds": 0.78}
+{"condition": "auto-held-1500", "start": 1, "replay": "cached", "case": "dispatch, 200 commands, line 17", "answer": ["fs.move", {"source": "screenshots", "dest": "/mnt/usb"}], "seconds": 1.33}
+{"condition": "auto-held-1500", "start": 1, "replay": "cached", "case": "dispatch, 200 commands, line 18", "answer": ["fs.move", {"source": "draft1.docx", "dest": "proposal.docx"}], "seconds": 1.41}
+{"condition": "auto-held-1500", "start": 1, "replay": "cached", "case": "dispatch, 200 commands, line 19", "answer": ["proc.list", {}], "seconds": 0.96}
+{"condition": "auto-held-1500", "start": 1, "replay": "cached", "case": "dispatch, 200 commands, line 20", "answer": ["proc.list", {"sort_by": "memory"}], "seconds": 1.15}
+{"condition": "auto-held-1500", "start": 1, "replay": "cached", "case": "dispatch, 200 commands, line 21", "answer": ["proc.list", {"filter": "firefox"}], "seconds": 1.05}
+{"condition": "auto-held-1500", "start": 1, "replay": "cached", "case": "dispatch, 200 commands, line 22", "answer": ["proc.list", {"sort_by": "cpu"}], "seconds": 1.11}
+{"condition": "auto-held-1500", "start": 1, "replay": "cached", "case": "dispatch, 200 commands, line 23", "answer": ["proc.list", {"sort_by": "cpu"}], "seconds": 1.14}
+{"condition": "auto-held-1500", "start": 1, "replay": "cached", "case": "dispatch, 200 commands, line 24", "answer": ["proc.list", {"filter": "python"}], "seconds": 1.05}
+{"condition": "auto-held-1500", "start": 1, "replay": "cached", "case": "dispatch, 200 commands, line 25", "answer": ["proc.kill", {"target": "3000"}], "seconds": 1.19}
+{"condition": "auto-held-1500", "start": 1, "replay": "cached", "case": "dispatch, 200 commands, line 26", "answer": ["proc.kill", {"target": "firefox"}], "seconds": 1.08}
+{"condition": "auto-held-1500", "start": 1, "replay": "cached", "case": "dispatch, 200 commands, line 27", "answer": ["proc.kill", {"target": "48213"}], "seconds": 1.19}
+{"condition": "auto-held-1500", "start": 1, "replay": "cached", "case": "dispatch, 200 commands, line 28", "answer": ["proc.kill", {"target": "node"}], "seconds": 1.08}
+{"condition": "auto-held-1500", "start": 1, "replay": "cached", "case": "dispatch, 200 commands, line 29", "answer": ["proc.kill", {"target": "8080"}], "seconds": 1.21}
+{"condition": "auto-held-1500", "start": 1, "replay": "cached", "case": "dispatch, 200 commands, line 30", "answer": ["proc.kill", {"target": "slack"}], "seconds": 1.04}
+{"condition": "auto-held-1500", "start": 1, "replay": "cached", "case": "dispatch, 200 commands, line 31", "answer": ["net.fetch", {"url": "https://example.com/data.csv"}], "seconds": 1.32}
+{"condition": "auto-held-1500", "start": 1, "replay": "cached", "case": "dispatch, 200 commands, line 32", "answer": ["net.fetch", {"url": "https://example.org/setup.sh", "output": "install.sh"}], "seconds": 1.6}
+{"condition": "auto-held-1500", "start": 1, "replay": "cached", "case": "dispatch, 200 commands, line 33", "answer": ["net.fetch", {"url": "https://example.com/logo.png", "output": "~/Pictures/logo.png"}], "seconds": 1.62}
+{"condition": "auto-held-1500", "start": 1, "replay": "cached", "case": "dispatch, 200 commands, line 34", "answer": ["net.fetch", {"url": "https://example.net/report.pdf", "output": "report.pdf"}], "seconds": 1.56}
+{"condition": "auto-held-1500", "start": 1, "replay": "cached", "case": "dispatch, 200 commands, line 35", "answer": ["net.fetch", {"url": "https://example.com/archive.tar.gz"}], "seconds": 1.4}
+{"condition": "auto-held-1500", "start": 1, "replay": "cached", "case": "dispatch, 200 commands, line 36", "answer": ["net.fetch", {"url": "https://example.com/ubuntu.iso", "output": "ubuntu.iso"}], "seconds": 1.55}
+{"condition": "auto-held-1500", "start": 1, "replay": "cached", "case": "dispatch, 200 commands, line 37", "answer": ["net.ping", {"host": "github.com"}], "seconds": 1.13}
+{"condition": "auto-held-1500", "start": 1, "replay": "cached", "case": "dispatch, 200 commands, line 38", "answer": ["net.ping", {"host": "192.168.1.1"}], "seconds": 1.43}
+{"condition": "auto-held-1500", "start": 1, "replay": "cached", "case": "dispatch, 200 commands, line 39", "answer": ["net.ping", {"host": "example.com"}], "seconds": 1.17}
+{"condition": "auto-held-1500", "start": 1, "replay": "cached", "case": "dispatch, 200 commands, line 40", "answer": ["none", {}], "seconds": 0.73}
+{"condition": "auto-held-1500", "start": 1, "replay": "cached", "case": "dispatch, 200 commands, line 41", "answer": ["net.ping", {"host": "10.0.0.42"}], "seconds": 1.37}
+{"condition": "auto-held-1500", "start": 1, "replay": "cached", "case": "dispatch, 200 commands, line 42", "answer": ["net.ping", {"host": "cloudflare.com"}], "seconds": 1.14}
+{"condition": "auto-held-1500", "start": 1, "replay": "cached", "case": "dispatch, 200 commands, line 43", "answer": ["remind.add", {"when": "20 minutes", "text": "check the oven"}], "seconds": 1.41}
+{"condition": "auto-held-1500", "start": 1, "replay": "cached", "case": "dispatch, 200 commands, line 44", "answer": ["remind.add", {"when": "tomorrow at 9", "text": "call the dentist"}], "seconds": 1.44}
+{"condition": "auto-held-1500", "start": 1, "replay": "cached", "case": "dispatch, 200 commands, line 45", "answer": ["remind.add", {"when": "14:30", "text": "standup"}], "seconds": 1.5}
+{"condition": "auto-held-1500", "start": 1, "replay": "cached", "case": "dispatch, 200 commands, line 46", "answer": ["remind.add", {"when": "friday afternoon", "text": "the tax form"}], "seconds": 1.35}
+{"condition": "auto-held-1500", "start": 1, "replay": "cached", "case": "dispatch, 200 commands, line 47", "answer": ["remind.add", {"when": "next monday", "text": "renew passport"}], "seconds": 1.34}
+{"condition": "auto-held-1500", "start": 1, "replay": "cached", "case": "dispatch, 200 commands, line 48", "answer": ["remind.add", {"when": "in 2 hours", "text": "stretch"}], "seconds": 1.37}
+{"condition": "auto-held-1500", "start": 1, "replay": "cached", "case": "dispatch, 200 commands, line 49", "answer": ["none", {}], "seconds": 0.79}
+{"condition": "auto-held-1500", "start": 1, "replay": "cached", "case": "dispatch, 200 commands, line 50", "answer": ["note.add", {"text": "the meeting moved to room 4"}], "seconds": 1.28}
+{"condition": "auto-held-1500", "start": 1, "replay": "cached", "case": "dispatch, 200 commands, line 51", "answer": ["note.add", {"text": "cache dispatch results", "tag": "work"}], "seconds": 1.35}
+{"condition": "auto-held-1500", "start": 1, "replay": "cached", "case": "dispatch, 200 commands, line 52", "answer": ["note.add", {"text": "buy oat milk"}], "seconds": 1.14}
+{"condition": "auto-held-1500", "start": 1, "replay": "cached", "case": "dispatch, 200 commands, line 53", "answer": ["note.add", {"text": "landlord's number is 555-0142"}], "seconds": 1.57}
+{"condition": "auto-held-1500", "start": 1, "replay": "cached", "case": "dispatch, 200 commands, line 54", "answer": ["none", {}], "seconds": 0.78}
+{"condition": "auto-held-1500", "start": 1, "replay": "cached", "case": "dispatch, 200 commands, line 55", "answer": ["sys.status", {"what": "battery"}], "seconds": 1.08}
+{"condition": "auto-held-1500", "start": 1, "replay": "cached", "case": "dispatch, 200 commands, line 56", "answer": ["sys.status", {"what": "temperature"}], "seconds": 1.07}
+{"condition": "auto-held-1500", "start": 1, "replay": "cached", "case": "dispatch, 200 commands, line 57", "answer": ["sys.status", {"what": "memory"}], "seconds": 1.07}
+{"condition": "auto-held-1500", "start": 1, "replay": "cached", "case": "dispatch, 200 commands, line 58", "answer": ["sys.status", {"what": "all"}], "seconds": 1.11}
+{"condition": "auto-held-1500", "start": 1, "replay": "cached", "case": "dispatch, 200 commands, line 59", "answer": ["sys.status", {"what": "CPU"}], "seconds": 1.09}
+{"condition": "auto-held-1500", "start": 1, "replay": "cached", "case": "dispatch, 200 commands, line 60", "answer": ["sys.status", {"what": "temperature"}], "seconds": 1.1}
+{"condition": "auto-held-1500", "start": 1, "replay": "cached", "case": "dispatch, 200 commands, line 61", "answer": ["none", {}], "seconds": 0.76}
+{"condition": "auto-held-1500", "start": 1, "replay": "cached", "case": "dispatch, 200 commands, line 62", "answer": ["fs.copy", {"source": "config.yaml", "dest": "config.yaml.bak"}], "seconds": 1.46}
+{"condition": "auto-held-1500", "start": 1, "replay": "cached", "case": "dispatch, 200 commands, line 63", "answer": ["fs.delete", {"path": "tmp"}], "seconds": 1.06}
+{"condition": "auto-held-1500", "start": 1, "replay": "cached", "case": "dispatch, 200 commands, line 64", "answer": ["fs.search", {"path": "src", "text": "TODO"}], "seconds": 1.24}
+{"condition": "auto-held-1500", "start": 1, "replay": "cached", "case": "dispatch, 200 commands, line 65", "answer": ["fs.archive", {"source": "photos"}], "seconds": 1.06}
+{"condition": "auto-held-1500", "start": 1, "replay": "cached", "case": "dispatch, 200 commands, line 66", "answer": ["fs.extract", {"source": "archive.tar.gz"}], "seconds": 1.18}
+{"condition": "auto-held-1500", "start": 1, "replay": "cached", "case": "dispatch, 200 commands, line 67", "answer": ["fs.dedupe", {"path": "~/Pictures"}], "seconds": 1.11}
+{"condition": "auto-held-1500", "start": 1, "replay": "cached", "case": "dispatch, 200 commands, line 68", "answer": ["proc.ports", {"port": "5432"}], "seconds": 1.2}
+{"condition": "auto-held-1500", "start": 1, "replay": "cached", "case": "dispatch, 200 commands, line 69", "answer": ["net.speed", {}], "seconds": 0.93}
+{"condition": "auto-held-1500", "start": 1, "replay": "cached", "case": "dispatch, 200 commands, line 70", "answer": ["net.ip", {}], "seconds": 0.93}
+{"condition": "auto-held-1500", "start": 1, "replay": "cached", "case": "dispatch, 200 commands, line 71", "answer": ["remind.list", {}], "seconds": 0.96}
+{"condition": "auto-held-1500", "start": 1, "replay": "cached", "case": "dispatch, 200 commands, line 72", "answer": ["sys.volume", {"level": "30"}], "seconds": 1.12}
+{"condition": "auto-held-1500", "start": 1, "replay": "cached", "case": "dispatch, 200 commands, line 73", "answer": ["calc.eval", {"expression": "0.18 * 2450"}], "seconds": 1.37}
+{"condition": "auto-held-1500", "start": 1, "replay": "cached", "case": "dispatch, 200 commands, line 74", "answer": ["calc.convert", {"value": "26.2", "from": "miles", "to": "kilometres"}], "seconds": 1.54}
+{"condition": "auto-held-1500", "start": 1, "replay": "cached", "case": "dispatch, 200 commands, line 75", "answer": ["time.timer", {"duration": "10 minutes", "label": "tea"}], "seconds": 1.32}
+{"condition": "auto-held-1500", "start": 1, "replay": "cached", "case": "dispatch, 200 commands, line 76", "answer": ["weather.forecast", {"place": "tomorrow"}], "seconds": 1.08}
+{"condition": "auto-held-1500", "start": 1, "replay": "cached", "case": "dispatch, 200 commands, line 77", "answer": ["img.resize", {"path": "photo.jpg", "width": "800"}], "seconds": 1.38}
+{"condition": "auto-held-1500", "start": 1, "replay": "cached", "case": "dispatch, 200 commands, line 78", "answer": ["pdf.merge", {"inputs": "a.pdf, b.pdf", "output": "one file"}], "seconds": 1.48}
+{"condition": "auto-held-1500", "start": 1, "replay": "cached", "case": "dispatch, 200 commands, line 79", "answer": ["dict.define", {"word": "ephemeral"}], "seconds": 1.11}
+{"condition": "auto-held-1500", "start": 1, "replay": "cached", "case": "dispatch, 200 commands, line 80", "answer": ["todo.add", {"text": "call the plumber"}], "seconds": 1.15}
+{"condition": "auto-held-1500", "start": 1, "replay": "cached", "case": "dispatch, 200 commands, line 81", "answer": ["disk.free", {}], "seconds": 0.98}
+{"condition": "auto-held-1500", "start": 1, "replay": "cached", "case": "dispatch, 200 commands, line 82", "answer": ["shot.screen", {}], "seconds": 0.93}
+{"condition": "auto-held-1500", "start": 1, "replay": "cached", "case": "dispatch, 200 commands, line 83", "answer": ["cal.list", {"when": "today"}], "seconds": 1.09}
+{"condition": "auto-held-1500", "start": 1, "replay": "cached", "case": "dispatch, 200 commands, line 84", "answer": ["log.tail", {"lines": "50"}], "seconds": 1.13}
+{"condition": "auto-held-1500", "start": 1, "replay": "cached", "case": "dispatch, 200 commands, line 85", "answer": ["docker.ps", {"filter": "web"}], "seconds": 1.09}
+{"condition": "auto-held-1500", "start": 1, "replay": "cached", "case": "dispatch, 200 commands, line 86", "answer": ["none", {}], "seconds": 0.77}
+{"condition": "auto-held-1500", "start": 1, "replay": "cached", "case": "dispatch, 200 commands, line 87", "answer": ["none", {}], "seconds": 0.73}
+{"condition": "auto-held-1500", "start": 1, "replay": "cached", "case": "dispatch, 200 commands, line 88", "answer": ["none", {}], "seconds": 0.77}
+{"condition": "auto-held-1500", "start": 1, "replay": "cached", "case": "dispatch, 200 commands, line 89", "answer": ["none", {}], "seconds": 0.74}
+{"condition": "auto-held-1500", "start": 1, "replay": "cached", "case": "dispatch, 200 commands, line 90", "answer": ["none", {}], "seconds": 0.71}
+{"condition": "auto-held-1500", "start": 1, "replay": "cached", "case": "dispatch, 200 commands, line 91", "answer": ["none", {}], "seconds": 0.74}
+{"condition": "auto-held-1500", "start": 1, "replay": "cached", "case": "dispatch, 200 commands, line 92", "answer": ["none", {}], "seconds": 0.75}
+{"condition": "auto-held-1500", "start": 1, "replay": "cached", "case": "dispatch, 200 commands, line 93", "answer": ["none", {}], "seconds": 0.74}
+{"condition": "auto-held-1500", "start": 1, "replay": "cached", "case": "dispatch, 200 commands, line 94", "answer": ["none", {}], "seconds": 0.75}
+{"condition": "auto-held-1500", "start": 1, "replay": "cached", "case": "dispatch, 200 commands, line 95", "answer": ["none", {}], "seconds": 0.76}
+{"condition": "auto-held-1500", "start": 1, "replay": "cached", "case": "dispatch, 200 commands, line 96", "answer": ["none", {}], "seconds": 0.74}
+{"condition": "auto-held-1500", "start": 1, "replay": "cached", "case": "dispatch, 200 commands, line 97", "answer": ["none", {}], "seconds": 0.73}
+{"condition": "auto-held-1500", "start": 1, "replay": "cached", "case": "dispatch, 200 commands, line 98", "answer": ["none", {}], "seconds": 0.75}
+{"condition": "auto-held-1500", "start": 1, "replay": "cached", "case": "dispatch, 200 commands, line 99", "answer": ["none", {}], "seconds": 0.75}
+{"condition": "auto-held-1500", "start": 1, "replay": "cached", "case": "dispatch, 200 commands, line 100", "answer": ["none", {}], "seconds": 0.72}
+{"condition": "auto-held-1500", "start": 1, "replay": "cached", "case": "decode, step 1, {}", "answer": {"op": "call", "command": "sys.status", "args": {"what": "memory"}, "into": "mem"}, "seconds": 3.52}
+{"condition": "auto-held-1500", "start": 1, "replay": "cached", "case": "decode, step 2, {}", "answer": {"op": "call", "command": "sys.status", "args": {"what": "temperature"}, "into": "temp"}, "seconds": 1.49}
+{"condition": "auto-held-1500", "start": 1, "replay": "cached", "case": "decode, step 3, {\"mem\": \"Memory: 25.5 GB available of 30.8 GB\"}", "answer": {"op": "set", "register": "mem_level", "value": "fine"}, "seconds": 2.16}
+{"condition": "auto-held-1500", "start": 1, "replay": "cached", "case": "decode, step 3, {\"mem\": \"Memory: 25.6 GB available of 30.8 GB\"}", "answer": {"op": "set", "register": "mem_level", "value": "fine"}, "seconds": 2.16}
+{"condition": "auto-held-1500", "start": 1, "replay": "cached", "case": "decode, step 4, {\"temp\": \"Temperature: 72 \\u00b0C at the hottest sensor (acpitz)\"}", "answer": {"op": "set", "register": "temp_level", "value": "fine"}, "seconds": 2.17}
+{"condition": "auto-held-1500", "start": 1, "replay": "cached", "case": "decode, step 4, {\"temp\": \"Temperature: 78 \\u00b0C at the hottest sensor (acpitz)\"}", "answer": {"op": "set", "register": "temp_level", "value": "fine"}, "seconds": 2.17}
+{"condition": "auto-held-1500", "start": 1, "replay": "cached", "case": "decode, step 4, {\"temp\": \"Temperature: 79 \\u00b0C at the hottest sensor (acpitz)\"}", "answer": {"op": "set", "register": "temp_level", "value": "fine"}, "seconds": 2.16}
+{"condition": "auto-held-1500", "start": 1, "replay": "cached", "case": "decode, step 4, {\"temp\": \"Temperature: 84 \\u00b0C at the hottest sensor (acpitz)\"}", "answer": {"op": "set", "register": "temp_level", "value": "worrying"}, "seconds": 2.21}
+{"condition": "auto-held-1500", "start": 1, "replay": "cached", "case": "decode, step 4, {\"temp\": \"Temperature: 85 \\u00b0C at the hottest sensor (acpitz)\"}", "answer": {"op": "set", "register": "temp_level", "value": "worrying"}, "seconds": 2.22}
+{"condition": "auto-held-1500", "start": 1, "replay": "cached", "case": "decode, step 4, {\"temp\": \"Temperature: 86 \\u00b0C at the hottest sensor (acpitz)\"}", "answer": {"op": "set", "register": "temp_level", "value": "worrying"}, "seconds": 2.22}
+{"condition": "auto-held-1500", "start": 1, "replay": "cached", "case": "decode, step 4, {\"temp\": \"Temperature: 87 \\u00b0C at the hottest sensor (acpitz)\"}", "answer": {"op": "set", "register": "temp_level", "value": "worrying"}, "seconds": 2.22}
+{"condition": "auto-held-1500", "start": 1, "replay": "cached", "case": "decode, step 4, {\"temp\": \"Temperature: 88 \\u00b0C at the hottest sensor (acpitz)\"}", "answer": {"op": "set", "register": "temp_level", "value": "worrying"}, "seconds": 2.22}
+{"condition": "auto-held-1500", "start": 1, "replay": "cached", "case": "decode, step 5, {\"mem_level\": \"fine\", \"temp_level\": \"fine\"}", "answer": {"op": "set", "register": "verdict", "value": "The machine looks healthy."}, "seconds": 2.34}
+{"condition": "auto-held-1500", "start": 1, "replay": "cached", "case": "decode, step 5, {\"mem_level\": \"fine\", \"temp_level\": \"worrying\"}", "answer": {"op": "set", "register": "verdict", "value": "Worrying: {temp}"}, "seconds": 2.4}
+{"condition": "auto-held-1500", "start": 1, "replay": "cached", "case": "decode, step 5, {\"mem_level\": \"worrying\", \"temp_level\": \"fine\"}", "answer": {"op": "set", "register": "verdict", "value": "Worrying: {mem}"}, "seconds": 2.4}
+{"condition": "auto-held-1500", "start": 1, "replay": "cached", "case": "decode, step 5, {\"mem_level\": \"worrying\", \"temp_level\": \"worrying\"}", "answer": {"op": "set", "register": "verdict", "value": "Worrying: {mem}; {temp}"}, "seconds": 2.5}
+{"condition": "auto-held-1500", "start": 1, "replay": "fresh", "case": "dispatch, 10 commands, line 1", "answer": ["fs.find", {"path": "downloads"}], "seconds": 2.59}
+{"condition": "auto-held-1500", "start": 1, "replay": "fresh", "case": "dispatch, 10 commands, line 2", "answer": ["fs.find", {"name": "*.pdf", "older_than": "1 year"}], "seconds": 2.78}
+{"condition": "auto-held-1500", "start": 1, "replay": "fresh", "case": "dispatch, 10 commands, line 3", "answer": ["fs.find", {"name": "budget-2025"}], "seconds": 2.68}
+{"condition": "auto-held-1500", "start": 1, "replay": "fresh", "case": "dispatch, 10 commands, line 4", "answer": ["fs.find", {"path": "~/Videos", "larger_than": "2 gigs"}], "seconds": 2.76}
+{"condition": "auto-held-1500", "start": 1, "replay": "fresh", "case": "dispatch, 10 commands, line 5", "answer": ["fs.find", {"path": "/var/log", "older_than": "30 days"}], "seconds": 2.88}
+{"condition": "auto-held-1500", "start": 1, "replay": "fresh", "case": "dispatch, 10 commands, line 6", "answer": ["none", {}], "seconds": 2.22}
+{"condition": "auto-held-1500", "start": 1, "replay": "fresh", "case": "dispatch, 10 commands, line 7", "answer": ["fs.usage", {"path": "home directory"}], "seconds": 2.56}
+{"condition": "auto-held-1500", "start": 1, "replay": "fresh", "case": "dispatch, 10 commands, line 8", "answer": ["fs.usage", {"path": "node_modules"}], "seconds": 2.58}
+{"condition": "auto-held-1500", "start": 1, "replay": "fresh", "case": "dispatch, 10 commands, line 9", "answer": ["fs.usage", {"path": "~/Projects", "depth": "2"}], "seconds": 2.72}
+{"condition": "auto-held-1500", "start": 1, "replay": "fresh", "case": "dispatch, 10 commands, line 10", "answer": ["fs.usage", {"path": "~/Pictures"}], "seconds": 2.49}
+{"condition": "auto-held-1500", "start": 1, "replay": "fresh", "case": "dispatch, 10 commands, line 11", "answer": ["fs.usage", {"path": "/var"}], "seconds": 2.52}
+{"condition": "auto-held-1500", "start": 1, "replay": "fresh", "case": "dispatch, 10 commands, line 12", "answer": ["fs.usage", {"path": "music collection"}], "seconds": 2.55}
+{"condition": "auto-held-1500", "start": 1, "replay": "fresh", "case": "dispatch, 10 commands, line 13", "answer": ["fs.move", {"source": "report.txt", "dest": "report-final.txt"}], "seconds": 2.82}
+{"condition": "auto-held-1500", "start": 1, "replay": "fresh", "case": "dispatch, 10 commands, line 14", "answer": ["fs.move", {"source": "notes.md", "dest": "archive folder"}], "seconds": 2.74}
+{"condition": "auto-held-1500", "start": 1, "replay": "fresh", "case": "dispatch, 10 commands, line 15", "answer": ["fs.move", {"source": "~/Downloads/invoice.pdf", "dest": "~/Documents/taxes"}], "seconds": 2.85}
+{"condition": "auto-held-1500", "start": 1, "replay": "fresh", "case": "dispatch, 10 commands, line 16", "answer": ["fs.move", {"source": "site", "dest": "old-site"}], "seconds": 2.72}
+{"condition": "auto-held-1500", "start": 1, "replay": "fresh", "case": "dispatch, 10 commands, line 17", "answer": ["fs.move", {"source": "screenshots", "dest": "/mnt/usb/screenshots"}], "seconds": 2.81}
+{"condition": "auto-held-1500", "start": 1, "replay": "fresh", "case": "dispatch, 10 commands, line 18", "answer": ["fs.move", {"source": "draft1.docx", "dest": "proposal.docx"}], "seconds": 2.81}
+{"condition": "auto-held-1500", "start": 1, "replay": "fresh", "case": "dispatch, 10 commands, line 19", "answer": ["proc.list", {}], "seconds": 2.38}
+{"condition": "auto-held-1500", "start": 1, "replay": "fresh", "case": "dispatch, 10 commands, line 20", "answer": ["proc.list", {"sort_by": "memory"}], "seconds": 2.55}
+{"condition": "auto-held-1500", "start": 1, "replay": "fresh", "case": "dispatch, 10 commands, line 21", "answer": ["proc.list", {"filter": "firefox"}], "seconds": 2.48}
+{"condition": "auto-held-1500", "start": 1, "replay": "fresh", "case": "dispatch, 10 commands, line 22", "answer": ["proc.list", {"sort_by": "cpu"}], "seconds": 2.52}
+{"condition": "auto-held-1500", "start": 1, "replay": "fresh", "case": "dispatch, 10 commands, line 23", "answer": ["proc.list", {"sort_by": "cpu"}], "seconds": 2.55}
+{"condition": "auto-held-1500", "start": 1, "replay": "fresh", "case": "dispatch, 10 commands, line 24", "answer": ["proc.list", {"filter": "python"}], "seconds": 2.47}
+{"condition": "auto-held-1500", "start": 1, "replay": "fresh", "case": "dispatch, 10 commands, line 25", "answer": ["proc.kill", {"target": "3000"}], "seconds": 2.59}
+{"condition": "auto-held-1500", "start": 1, "replay": "fresh", "case": "dispatch, 10 commands, line 26", "answer": ["proc.kill", {"target": "firefox"}], "seconds": 2.49}
+{"condition": "auto-held-1500", "start": 1, "replay": "fresh", "case": "dispatch, 10 commands, line 27", "answer": ["proc.kill", {"target": "48213"}], "seconds": 2.6}
+{"condition": "auto-held-1500", "start": 1, "replay": "fresh", "case": "dispatch, 10 commands, line 28", "answer": ["proc.kill", {"target": "node server"}], "seconds": 2.53}
+{"condition": "auto-held-1500", "start": 1, "replay": "fresh", "case": "dispatch, 10 commands, line 29", "answer": ["proc.kill", {"target": "8080"}], "seconds": 2.6}
+{"condition": "auto-held-1500", "start": 1, "replay": "fresh", "case": "dispatch, 10 commands, line 30", "answer": ["proc.kill", {"target": "slack"}], "seconds": 2.47}
+{"condition": "auto-held-1500", "start": 1, "replay": "fresh", "case": "dispatch, 10 commands, line 31", "answer": ["net.fetch", {"url": "https://example.com/data.csv"}], "seconds": 2.74}
+{"condition": "auto-held-1500", "start": 1, "replay": "fresh", "case": "dispatch, 10 commands, line 32", "answer": ["net.fetch", {"url": "https://example.org/setup.sh", "output": "install.sh"}], "seconds": 3.01}
+{"condition": "auto-held-1500", "start": 1, "replay": "fresh", "case": "dispatch, 10 commands, line 33", "answer": ["net.fetch", {"url": "https://example.com/logo.png", "output": "~/Pictures"}], "seconds": 2.91}
+{"condition": "auto-held-1500", "start": 1, "replay": "fresh", "case": "dispatch, 10 commands, line 34", "answer": ["net.fetch", {"url": "https://example.net/report.pdf"}], "seconds": 2.78}
+{"condition": "auto-held-1500", "start": 1, "replay": "fresh", "case": "dispatch, 10 commands, line 35", "answer": ["net.fetch", {"url": "https://example.com/archive.tar.gz"}], "seconds": 2.81}
+{"condition": "auto-held-1500", "start": 1, "replay": "fresh", "case": "dispatch, 10 commands, line 36", "answer": ["net.fetch", {"url": "https://example.com/ubuntu.iso"}], "seconds": 2.77}
+{"condition": "auto-held-1500", "start": 1, "replay": "fresh", "case": "dispatch, 10 commands, line 37", "answer": ["net.ping", {"host": "github.com"}], "seconds": 2.55}
+{"condition": "auto-held-1500", "start": 1, "replay": "fresh", "case": "dispatch, 10 commands, line 38", "answer": ["net.ping", {"host": "192.168.1.1"}], "seconds": 2.83}
+{"condition": "auto-held-1500", "start": 1, "replay": "fresh", "case": "dispatch, 10 commands, line 39", "answer": ["net.ping", {"host": "example.com"}], "seconds": 2.59}
+{"condition": "auto-held-1500", "start": 1, "replay": "fresh", "case": "dispatch, 10 commands, line 40", "answer": ["none", {}], "seconds": 2.17}
+{"condition": "auto-held-1500", "start": 1, "replay": "fresh", "case": "dispatch, 10 commands, line 41", "answer": ["net.ping", {"host": "10.0.0.42"}], "seconds": 2.79}
+{"condition": "auto-held-1500", "start": 1, "replay": "fresh", "case": "dispatch, 10 commands, line 42", "answer": ["net.ping", {"host": "cloudflare.com"}], "seconds": 2.56}
+{"condition": "auto-held-1500", "start": 1, "replay": "fresh", "case": "dispatch, 10 commands, line 43", "answer": ["remind.add", {"when": "20 minutes", "text": "check the oven"}], "seconds": 2.82}
+{"condition": "auto-held-1500", "start": 1, "replay": "fresh", "case": "dispatch, 10 commands, line 44", "answer": ["remind.add", {"when": "tomorrow at 9", "text": "call the dentist"}], "seconds": 2.85}
+{"condition": "auto-held-1500", "start": 1, "replay": "fresh", "case": "dispatch, 10 commands, line 45", "answer": ["remind.add", {"when": "14:30", "text": "standup"}], "seconds": 2.9}
+{"condition": "auto-held-1500", "start": 1, "replay": "fresh", "case": "dispatch, 10 commands, line 46", "answer": ["remind.add", {"when": "friday afternoon", "text": "the tax form"}], "seconds": 2.78}
+{"condition": "auto-held-1500", "start": 1, "replay": "fresh", "case": "dispatch, 10 commands, line 47", "answer": ["remind.add", {"when": "next monday", "text": "renew passport"}], "seconds": 2.79}
+{"condition": "auto-held-1500", "start": 1, "replay": "fresh", "case": "dispatch, 10 commands, line 48", "answer": ["remind.add", {"when": "in two hours", "text": "stretch"}], "seconds": 2.75}
+{"condition": "auto-held-1500", "start": 1, "replay": "fresh", "case": "dispatch, 10 commands, line 49", "answer": ["none", {}], "seconds": 2.22}
+{"condition": "auto-held-1500", "start": 1, "replay": "fresh", "case": "dispatch, 10 commands, line 50", "answer": ["note.add", {"text": "the meeting moved to room 4"}], "seconds": 2.69}
+{"condition": "auto-held-1500", "start": 1, "replay": "fresh", "case": "decode, step 1, {}", "answer": {"op": "call", "command": "sys.status", "args": {"what": "memory"}, "into": "mem"}, "seconds": 3.09}
+{"condition": "auto-held-1500", "start": 1, "replay": "fresh", "case": "decode, step 2, {}", "answer": {"op": "call", "command": "sys.status", "args": {"what": "temperature"}, "into": "temp"}, "seconds": 2.99}
+{"condition": "auto-held-1500", "start": 1, "replay": "fresh", "case": "decode, step 3, {\"mem\": \"Memory: 25.5 GB available of 30.8 GB\"}", "answer": {"op": "set", "register": "mem_level", "value": "fine"}, "seconds": 3.67}
+{"condition": "auto-held-1500", "start": 1, "replay": "fresh", "case": "decode, step 3, {\"mem\": \"Memory: 25.6 GB available of 30.8 GB\"}", "answer": {"op": "set", "register": "mem_level", "value": "fine"}, "seconds": 3.67}
+{"condition": "auto-held-1500", "start": 1, "replay": "fresh", "case": "decode, step 4, {\"temp\": \"Temperature: 72 \\u00b0C at the hottest sensor (acpitz)\"}", "answer": {"op": "set", "register": "temp_level", "value": "fine"}, "seconds": 3.68}
+{"condition": "auto-held-1500", "start": 1, "replay": "fresh", "case": "decode, step 4, {\"temp\": \"Temperature: 78 \\u00b0C at the hottest sensor (acpitz)\"}", "answer": {"op": "set", "register": "temp_level", "value": "fine"}, "seconds": 3.69}
+{"condition": "auto-held-1500", "start": 1, "replay": "fresh", "case": "decode, step 4, {\"temp\": \"Temperature: 79 \\u00b0C at the hottest sensor (acpitz)\"}", "answer": {"op": "set", "register": "temp_level", "value": "fine"}, "seconds": 3.67}
+{"condition": "auto-held-1500", "start": 1, "replay": "fresh", "case": "decode, step 4, {\"temp\": \"Temperature: 84 \\u00b0C at the hottest sensor (acpitz)\"}", "answer": {"op": "set", "register": "temp_level", "value": "worrying"}, "seconds": 3.72}
+{"condition": "auto-held-1500", "start": 1, "replay": "fresh", "case": "decode, step 4, {\"temp\": \"Temperature: 85 \\u00b0C at the hottest sensor (acpitz)\"}", "answer": {"op": "set", "register": "temp_level", "value": "worrying"}, "seconds": 3.73}
+{"condition": "auto-held-1500", "start": 1, "replay": "fresh", "case": "decode, step 4, {\"temp\": \"Temperature: 86 \\u00b0C at the hottest sensor (acpitz)\"}", "answer": {"op": "set", "register": "temp_level", "value": "worrying"}, "seconds": 3.73}
+{"condition": "auto-held-1500", "start": 1, "replay": "fresh", "case": "decode, step 4, {\"temp\": \"Temperature: 87 \\u00b0C at the hottest sensor (acpitz)\"}", "answer": {"op": "set", "register": "temp_level", "value": "worrying"}, "seconds": 3.73}
+{"condition": "auto-held-1500", "start": 1, "replay": "fresh", "case": "decode, step 4, {\"temp\": \"Temperature: 88 \\u00b0C at the hottest sensor (acpitz)\"}", "answer": {"op": "set", "register": "temp_level", "value": "worrying"}, "seconds": 3.73}
+{"condition": "auto-held-1500", "start": 1, "replay": "fresh", "case": "decode, step 5, {\"mem_level\": \"fine\", \"temp_level\": \"fine\"}", "answer": {"op": "set", "register": "verdict", "value": "The machine looks healthy."}, "seconds": 4.78}
+{"condition": "auto-held-1500", "start": 1, "replay": "fresh", "case": "decode, step 5, {\"mem_level\": \"fine\", \"temp_level\": \"worrying\"}", "answer": {"op": "set", "register": "verdict", "value": "Worrying: {mem} if mem_level is worrying and {temp} if temp_level is worrying, separated by a semicolon"}, "seconds": 5.4}
+{"condition": "auto-held-1500", "start": 1, "replay": "fresh", "case": "decode, step 5, {\"mem_level\": \"worrying\", \"temp_level\": \"fine\"}", "answer": {"op": "set", "register": "verdict", "value": "Worrying: {mem}"}, "seconds": 4.85}
+{"condition": "auto-held-1500", "start": 1, "replay": "fresh", "case": "decode, step 5, {\"mem_level\": \"worrying\", \"temp_level\": \"worrying\"}", "answer": {"op": "set", "register": "verdict", "value": "Worrying: {mem}; {temp}"}, "seconds": 4.95}
