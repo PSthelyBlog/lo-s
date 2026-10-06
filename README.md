@@ -53,6 +53,9 @@ The transcript is shortened; paths in the real output are absolute.
   runs one at a time. The local model turns each instruction into a single micro-op, and the
   machine applies it. `sys.health` is the first one, and `trace` shows the steps of the latest run.
   A step whose input the model has decoded before is answered from memory.
+- **`rule PROGRAM STEP`** asks the teacher model to turn a step's remembered answers into a small
+  function. It is tested against recorded answers it was not shown, you read it, and if you agree
+  it answers that step from then on, handing back to the local model whenever it is unsure.
 - **Anything no command fits** is queued as a need. `needs` lists them.
 - **`teach NUMBER`** asks a stronger "teacher" model to write a command for a queued need. You see
   the whole proposal, code included, and nothing is installed unless you agree. The new command

@@ -17,7 +17,8 @@ register; it writes {temp} in its micro-op and the machine fills in what the reg
 a value can be passed along without the model reading or retyping it.
 
 Decoding is repeatable, so a decode is remembered: when everything the decoder would be shown has
-been seen before, the recorded micro-op is used and the model is not asked.
+been seen before, the recorded micro-op is used and the model is not asked. A step can also have
+a rule (see rules.py), which is asked before memory and the model.
 
 Every cycle is recorded. A recorded run can be replayed, in which case commands are not run
 again and their recorded outputs are used instead.
@@ -28,7 +29,7 @@ import json
 import re
 import time
 
-from . import state
+from . import rules, state
 from .dispatch import table_text
 from .models import complete_valid
 from .plugins import CommandError, Program  # noqa: F401  Program is re-exported for callers
@@ -142,7 +143,7 @@ def run(name, program, table, model, args=None, replay=None, record=None, rememb
     `replay` maps a step to the (command, args, output) recorded for it; commands are then not
     run, and a call that differs from the recording is a trap. `record` receives each cycle;
     by default cycles go to the state folder. With `remember` off, every instruction goes to
-    the model and no decode is kept.
+    the model: no rule is asked, no decode is reused and none is kept.
     """
     record = record or (lambda cycle: state.append("cycles", cycle))
     known = {entry["key"]: entry for entry in state.read("decodes")} if remember else None
@@ -150,10 +151,14 @@ def run(name, program, table, model, args=None, replay=None, record=None, rememb
     run_id = f"{time.time_ns():x}"
     for step, instruction in enumerate(program.instructions, 1):
         before = dict(registers)
-        try:
-            micro_op, meta = decode(model, program, table, instruction, registers, known)
-        except RuntimeError as error:
-            raise Trap(f"step {step}: the decoder gave no usable micro-op ({error})")
+        ruled = rules.answer(name, step, instruction, visible(instruction, program, registers)) if remember else None
+        if ruled:
+            micro_op, meta = {"op": "set", "register": ruled[0], "value": ruled[1]}, {"how": "rule", "seconds": 0}
+        else:
+            try:
+                micro_op, meta = decode(model, program, table, instruction, registers, known)
+            except RuntimeError as error:
+                raise Trap(f"step {step}: the decoder gave no usable micro-op ({error})")
         cycle = {"run": run_id, "date": datetime.date.today().isoformat(), "program": name, "step": step,
                  "instruction": instruction, "registers": before, "micro_op": micro_op, "how": meta["how"],
                  "seconds": meta.get("seconds"), "saved": meta.get("saved"),

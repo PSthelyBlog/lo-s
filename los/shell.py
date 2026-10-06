@@ -15,7 +15,7 @@ import pathlib
 import shutil
 import tomllib
 
-from . import dispatch, machine, memory, plugins, state, teach
+from . import dispatch, machine, memory, plugins, rules, state, teach
 from .models import ModelUnavailable, provider
 from .parse import UsageError, parse, render, usage
 
@@ -50,6 +50,10 @@ class Shell:
             self.stats()
         elif line == "trace":
             self.trace()
+        elif words[0] == "rule":
+            self.rule(words[1:])
+        elif line == "rules":
+            self.list_rules()
         else:
             try:
                 parsed = parse(line, self.table)
@@ -135,8 +139,9 @@ class Shell:
         latest = [cycle for cycle in cycles if cycle["run"] == cycles[-1]["run"]]
         total = sum(cycle["seconds"] or 0 for cycle in latest)
         recalled = sum(cycle.get("how") == "memory" for cycle in latest)
+        ruled = sum(cycle.get("how") == "rule" for cycle in latest)
         self.out(f"{latest[0]['program']}: {len(latest)} cycle(s), {total:.1f} s in the decoder" +
-                 (f", {recalled} from memory" if recalled else ""))
+                 (f", {recalled} from memory" if recalled else "") + (f", {ruled} by rule" if ruled else ""))
         for cycle in latest:
             op = cycle["micro_op"]
             if op["op"] == "call":
@@ -145,8 +150,63 @@ class Shell:
                 did = f"set {op['register']} = {op['value']}"
             else:
                 did = "halt"
-            took = "remembered" if cycle.get("how") == "memory" else f"{cycle['seconds'] or 0:.2f} s"
+            took = {"memory": "remembered", "rule": "rule"}.get(cycle.get("how")) or f"{cycle['seconds'] or 0:.2f} s"
             self.out(f"{cycle['step']}. {cycle['instruction']}\n   {did}  ({took})")
+
+    def rule(self, words):
+        """Turn one program step's recorded answers into a rule, if the author model writes one
+        that reproduces them all and the user agrees to it."""
+        command = self.table.get(words[0]) if len(words) == 2 else None
+        if not command or not command.program or not words[1].isdigit() \
+                or not 1 <= int(words[1]) <= len(command.program.instructions):
+            self.out("Usage: rule PROGRAM STEP, for a step of a command written as a program, numbered as in trace.")
+            return
+        if not self.author:
+            self.out("No model is set up to write rules. Give the author role a provider in los.toml.")
+            return
+        name, step, program = command.name, int(words[1]), command.program
+        try:
+            register, listed = rules.cases(name, step, program)
+        except rules.Unsuitable as reason:
+            self.out(f"No rule for step {step} of {name}: {reason}.")
+            return
+        shown, held = rules.split(listed)
+        self.out(f"Asking {self.author.model} for a rule from {len(shown)} recorded case(s). "
+                 f"{len(held)} more are held back to test it.")
+        try:
+            code, reason = rules.ask(self.author, program.instructions[step - 1], register, shown)
+        except (ModelUnavailable, RuntimeError) as error:
+            self.out(f"No rule came back: {error}")
+            return
+        if code is None:
+            self.out(f"It declined: {reason}")
+            return
+        problems, answered = rules.check(code), 0
+        if not problems:
+            try:
+                problems, answered = rules.failures(rules.load(code), shown, held)
+            except Exception as error:      # anything the code does wrong while being defined
+                problems = [f"it does not load: {error}"]
+        if problems:
+            self.out("Its rule cannot be used:\n" + "\n".join(f"  - {problem}" for problem in problems))
+            return
+        self.out(f"{code.rstrip()}\n\nWhy: {reason}\n"
+                 f"It gives the recorded answer for all {len(shown)} cases it was shown. Of the {len(held)} held back, "
+                 f"it answers {answered} correctly and leaves {len(held) - answered} to the model.")
+        if not self.confirm(f"Use this rule for step {step} of {name}?", default=False):
+            self.out("Not installed.")
+            return
+        path = rules.install(name, step, program.instructions[step - 1], register, code, self.author, len(listed))
+        self.out(f"Installed. Step {step} of {name} now asks the rule first, and the model only when the rule "
+                 f"has no answer.\nDelete {path} to remove it.")
+
+    def list_rules(self):
+        current = rules.installed()
+        if not current:
+            self.out("No rules are installed.")
+        for (name, step), record in sorted(current.items()):
+            self.out(f"{name} step {step}: from {record['cases']} recorded cases, written by "
+                     f"{record['written_by']} on {record['date']}")
 
     def stats(self):
         log = state.read("dispatches")
@@ -157,11 +217,13 @@ class Shell:
                  f"Answered from memory: {len(recalled)}, saving about {sum(recalled):.1f} s")
         cycles = state.read("cycles")
         if cycles:
-            decoded = [cycle["seconds"] or 0 for cycle in cycles if cycle.get("how") != "memory"]
+            decoded = [cycle["seconds"] or 0 for cycle in cycles if cycle.get("how") not in ("memory", "rule")]
             recalled = [cycle.get("saved") or 0 for cycle in cycles if cycle.get("how") == "memory"]
+            ruled = sum(cycle.get("how") == "rule" for cycle in cycles)
             self.out(f"Program steps: {len(cycles)}\n"
                      f"Decoded by the model: {len(decoded)}, taking {sum(decoded):.1f} s\n"
-                     f"Answered from memory: {len(recalled)}, saving about {sum(recalled):.1f} s")
+                     f"Answered from memory: {len(recalled)}, saving about {sum(recalled):.1f} s\n"
+                     f"Answered by a rule: {ruled}")
 
     def queue(self, record, decided_by):
         state.append("needs", {**record, "decided_by": decided_by})
@@ -280,7 +342,8 @@ class Shell:
                      "Anything else is read as plain language and matched to a command. A line you\n"
                      "accepted before is remembered; wrong takes the latest such choice back, and\n"
                      "stats shows how often memory answered. trace shows the steps of the latest\n"
-                     "program run. exit leaves.")
+                     "program run, rule PROGRAM STEP turns a step's recorded answers into a rule,\n"
+                     "and rules lists those in use. exit leaves.")
             return
         for name in names:
             if name not in self.table:

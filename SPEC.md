@@ -26,6 +26,10 @@ design, not yet confirmed) or **Open**.
   memory can answer it.
 - **Proposed.** A decode is remembered. When everything the decoder would be shown has been seen
   before, with the same model, the recorded micro-op is used and the model is not asked.
+- **Proposed.** A step's remembered judgements can become a rule: a small pure function written by
+  the author model and approved by the user. It is asked before memory and the model, and returns
+  nothing for an input it does not clearly cover. A quarter of the recorded cases are held back
+  from the author. A rule is refused if it misses a case it was shown or contradicts one it was not.
 - **Proposed.** Tools are syscalls. A syscall is the only way to affect the host.
 - **Proposed.** Every cycle is recorded, and a recorded run can be replayed without running its
   commands again. A replay that asks for a different command stops.
@@ -129,7 +133,10 @@ design, not yet confirmed) or **Open**.
 - Memory for instructions: `sys.health` went from 8.6 seconds in the decoder to 0.5 on average
   over 20 runs, with 94 of 100 decodes answered from memory.
 - Registers passed along in braces, filled in by the machine without the decoder reading them.
-- Not built: turning remembered judgements into rules; a shorter micro-op encoding; conditionals
+- Rules (`los/rules.py`, `rule PROGRAM STEP` in the shell). Opus wrote one for the temperature
+  judgement in `sys.health` from eight recorded answers; it covers 20 to 78 °C and 84 to 110 °C and
+  leaves the rest to the model.
+- Not built: suggesting a rule without being asked; a shorter micro-op encoding; conditionals
   and jumps; programs
   written by the author model; draining the queue without being asked; a sandbox
   or enforced permissions for written commands; tests of what a written command does; one commit
