@@ -25,6 +25,7 @@ Run it? [y/N] y
 Moved report.txt to report-final.txt
 lo-s> make a backup copy of config.yaml
 Nothing here does that yet. Queued as a new need (1 waiting).
+delegate 1 asks claude-opus-5-5 what to send for it.
 lo-s> teach 1
 Asking claude-opus-5-5 to write a command for: make a backup copy of config.yaml
 fs.copy  Copy a file or directory, or make a backup copy next to the original ...  (effect: write)
@@ -61,6 +62,11 @@ The transcript is shortened; paths in the real output are absolute.
   the whole proposal, code included, and nothing is installed unless you agree. The new command
   is then checked: the lines you accepted before must still reach the same commands, and the
   need's own line must reach the new one. If not, it is removed again.
+- **`delegate WHAT YOU NEED`** is for when you do not know what to type. You say what you need in
+  your own words, and the teacher model, which is told how lo-s works, answers with what to send:
+  a command that exists, or a need for a new one, written as an example line plus notes for
+  whoever writes the command. It can also ask a question back, or say that lo-s cannot do it.
+  You see its answer before anything is sent. `delegate NUMBER` does this for a queued need.
 - There are eight starter commands, in the `fs`, `note` and `sys` plugins. `help` lists them.
 
 ## What the experiment found
@@ -119,6 +125,9 @@ lo-s runs commands on your real machine.
   it do. Its code is read for a few things it must not contain, but there is no sandbox: once you
   agree, it runs with your permissions. Read it first.
 - `fs.move` is the only starter command that changes files, and it refuses to overwrite.
+- `teach`, `rule` and `delegate` send text to the teacher model: the line or your words, the
+  command table, and for `delegate` also which models your machine is set up with and where they
+  are reached. With the default setup that is Anthropic, through your own `claude` login.
 - The model server listens on this machine only, and only pages served from this machine may read
   its answers in a browser.
 - Local models make mistakes. In the experiment, one turned "what's listening on port 5432" into a

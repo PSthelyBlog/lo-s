@@ -7,15 +7,19 @@ the user agrees. If the model finds no fitting command, the line is queued as a 
 
 A line the user has accepted before is answered from memory instead of by the model, for as long
 as the command table stays the same.
+
+`delegate` is for a user who does not know what to send: they say what they need, and the author
+model, which is told how all of the above works, answers with the line to send.
 """
 import argparse
+import dataclasses
 import datetime
 import os
 import pathlib
 import shutil
 import tomllib
 
-from . import dispatch, machine, memory, plugins, rules, state, teach
+from . import delegate, dispatch, machine, memory, plugins, rules, state, teach
 from .models import ModelUnavailable, provider
 from .parse import UsageError, parse, render, usage
 
@@ -25,6 +29,9 @@ BUILTINS = {
     "needs": "needs lists the lines no command could handle, numbered.",
     "teach": "teach NUMBER asks the author model to write a command for a queued need. You see it before it is installed.",
     "forget": "forget NUMBER drops a queued need.",
+    "delegate": "delegate WHAT YOU NEED, in your own words, asks the author model what to send: a command that "
+                "exists, or a need to queue for a new one. delegate NUMBER does that for a queued need. "
+                "You see its answer before anything is sent.",
     "wrong": "wrong takes back the latest plain-language choice, so that line is asked about again.",
     "stats": "stats shows how many lines and program steps the model, memory and rules answered.",
     "trace": "trace shows each step of the latest program run and the micro-op it became.",
@@ -59,6 +66,8 @@ class Shell:
             self.teach(words[1:])
         elif words[0] == "forget":
             self.forget(words[1:])
+        elif words[0] == "delegate":
+            self.delegate(line[len("delegate"):].strip())
         elif line == "wrong":
             self.wrong()
         elif line == "stats":
@@ -243,7 +252,9 @@ class Shell:
 
     def queue(self, record, decided_by):
         state.append("needs", {**record, "decided_by": decided_by})
-        self.out(f"Nothing here does that yet. Queued as a new need ({len(state.read('needs'))} waiting).")
+        number = len(state.read("needs"))
+        self.out(f"Nothing here does that yet. Queued as a new need ({number} waiting)." +
+                 (f"\ndelegate {number} asks {self.author.model} what to send for it." if self.author else ""))
 
     def run(self, command, args):
         try:
@@ -281,6 +292,69 @@ class Shell:
             state.replace("needs", [other for other in waiting if other is not need])
             self.out(f"Forgotten: {need['line']}")
 
+    def delegate(self, wish):
+        """Ask the author model what to send for something the user wants in their own words, and
+        send it if the user agrees. A number stands for the need queued under it."""
+        if not wish:
+            self.out("Usage: delegate WHAT YOU NEED, in your own words, or delegate NUMBER for a queued need.")
+            return
+        if not self.author:
+            self.out("No model is set up to delegate to. Give the author role a provider in los.toml.")
+            return
+        waiting, need = state.read("needs"), None
+        if wish.isdigit():
+            waiting, need = self.numbered_need("delegate", [wish])
+            if not need:
+                return
+            number, wish = int(wish), need["line"]
+        self.out(f"Asking {self.author.model} what to send for: {wish}")
+        try:
+            advice = delegate.ask(self.author, wish, self.table,
+                                  {"dispatch": self.model, "decode": self.decoder, "author": self.author})
+        except (ModelUnavailable, RuntimeError) as error:
+            self.out(f"No answer came back: {error}")
+            return
+        record = {"date": datetime.date.today().isoformat(), "wish": wish, "table": self.table_version,
+                  "provider": self.author.provider, "model": self.author.model}
+        told = {key: value for key, value in dataclasses.asdict(advice).items() if value}
+
+        if advice.answer == "run":
+            command = self.table[advice.command]
+            self.out(f"{advice.reason}\n→ {render(command.name, advice.args)}")
+            # A model chose this, so it gets the care a plain-language choice gets: Enter only accepts reading.
+            if self.confirm("Run it?", default=command.effect == "read"):
+                state.append("delegations", {**record, **told, "outcome": "ran"})
+                if need:
+                    state.replace("needs", [other for other in waiting if other is not need])
+                    self.out(f"That answers need {number}, so it left the queue.")
+                self.run(command, advice.args)
+                return
+            self.out("Not run.")
+        elif advice.answer == "need":
+            self.out(f"{advice.reason}\nThis needs a new command.\n  Example line: {advice.example}\n"
+                     f"  For the author: {advice.notes}")
+            if self.confirm("Queue it?", default=True):
+                entry = {**record, "line": advice.example, "notes": advice.notes, "decided_by": "author"}
+                if need:
+                    waiting = [entry if other is need else other for other in waiting]
+                    self.out(f"Queued in place of need {number}.")
+                else:
+                    waiting, number = waiting + [entry], len(waiting) + 1
+                    self.out(f"Queued as need {number}.")
+                state.replace("needs", waiting)
+                state.append("delegations", {**record, **told, "outcome": "queued"})
+                if self.plugin_dir and self.confirm("Teach it now?", default=False):
+                    self.teach([str(number)])
+                return
+            self.out("Not queued.")
+        elif advice.answer == "ask":
+            self.out(f"{advice.reason}\n{self.author.model} asks: {advice.question}\n"
+                     "Type delegate again with the answer included.")
+        else:
+            self.out(f"lo-s cannot do this: {advice.reason}" +
+                     (f"\nThe need stays queued; forget {number} removes it." if need else ""))
+        state.append("delegations", {**record, **told, "outcome": "nothing sent"})
+
     def teach(self, words):
         """Ask the author model for a command that handles a queued need, and install it if the
         user agrees and the result passes the acceptance check."""
@@ -292,7 +366,8 @@ class Shell:
             return
         self.out(f"Asking {self.author.model} to write a command for: {need['line']}")
         try:
-            proposal = teach.ask(self.author, need["line"], self.table, state.ROOT / "plugins" / "fs")
+            proposal = teach.ask(self.author, need["line"], self.table, state.ROOT / "plugins" / "fs",
+                                 need.get("notes"))
         except (ModelUnavailable, RuntimeError) as error:
             self.out(f"No proposal came back: {error}")
             return
@@ -309,7 +384,7 @@ class Shell:
             self.out("Not installed. The need stays queued.")
             return
 
-        folder = teach.install(proposal, self.plugin_dir, need["line"], self.author)
+        folder = teach.install(proposal, self.plugin_dir, need["line"], self.author, need.get("notes"))
         failures = self.acceptance(folder, proposal, need["line"])
         if failures:
             shutil.rmtree(folder)
@@ -355,6 +430,7 @@ class Shell:
             self.out("\n".join(f"{name:{width}}  {self.table[name].description}" for name in sorted(self.table)))
             self.out("\nhelp COMMAND shows a command's parameters. needs lists what is queued;\n"
                      "teach NUMBER asks for a command to be written for one, forget NUMBER drops it.\n"
+                     "delegate WHAT YOU NEED asks the author model what to send when you are not sure.\n"
                      "Anything else is read as plain language and matched to a command. A line you\n"
                      "accepted before is remembered; wrong takes the latest such choice back, and\n"
                      "stats shows how often memory answered. trace shows the steps of the latest\n"
@@ -378,7 +454,8 @@ class Shell:
         if not waiting:
             self.out("No needs are waiting.")
         for number, need in enumerate(waiting, 1):
-            self.out(f"{number}. {need['line']}  ({need['date']})")
+            self.out(f"{number}. {need['line']}  ({need['date']})" +
+                     (f"\n   For the author: {need['notes']}" if need.get("notes") else ""))
 
 
 def main(argv=None):

@@ -49,6 +49,19 @@ design, not yet confirmed) or **Open**.
      and asks before running it. Enter accepts a command that only reads; one that changes anything
      needs an explicit yes.
   3. Nothing fits: the need goes into a queue and the user is told.
+- **Decided.** A user who does not know what to send says what they need in their own words:
+  `delegate` followed by those words asks the teacher model. The teacher is told how lo-s works,
+  which commands exist and which models this machine is set up with. Its answer is shown, and
+  nothing is sent unless the user agrees. When the answer is a need, the shell offers to teach it
+  at once.
+- **Proposed.** The teacher gives one of four answers: a command that exists, with its parameters;
+  a need for a new command; a question back; or that lo-s cannot do it.
+- **Proposed.** A need queued this way has two parts. The example line is what a user would type,
+  and it is the line the acceptance check asks the student. The notes say what that line does
+  not: what varies, what on this machine the command has to reach, and which lines it is not for.
+- **Proposed.** A command the teacher chose is not a label. The student did not choose it, so
+  memory and the acceptance check leave it out. It is recorded on its own, in
+  `state/delegations.jsonl`.
 
 ## Plugins
 
@@ -128,6 +141,11 @@ design, not yet confirmed) or **Open**.
   are used.
 - `teach NUMBER` (`los/teach.py`): the author model writes a command for a queued need, the user
   approves it, and the acceptance check decides whether it stays. `forget NUMBER` drops a need.
+- `delegate WHAT YOU NEED` (`los/delegate.py`): the author model answers with a command to run, a
+  need to queue with notes for the author, a question, or that lo-s cannot do it. `delegate NUMBER`
+  does the same for a need already queued. A line that gets queued now says so. Tried on
+  2026-10-07 with four requests, which got one answer of each kind, and once all the way to an
+  installed command that passed the acceptance check on its example line.
 - Three starter plugins, `fs`, `note` and `sys`, seven commands in all, written as plain code so
   that dispatch has something to run. They are not a decision about the day-one core.
 - Memory (`los/memory.py`): the first optimization. A settled line skips the model, and `stats`
@@ -161,7 +179,8 @@ design, not yet confirmed) or **Open**.
   conditionals and jumps; programs written by the author model; draining the queue without being
   asked; a sandbox or enforced permissions for written commands; tests of what a written command
   does; one commit per install; optimizations proposed by a model; a search that uses the user's own
-  labels as its record.
+  labels as its record; sending the shell's own words, such as `needs` or `wrong`, through
+  `delegate`; answering the teacher's question without typing the request again.
 
 ## Open
 
