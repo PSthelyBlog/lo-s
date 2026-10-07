@@ -24,8 +24,12 @@ class ClaudeCli:
 
     def __init__(self, model="claude-opus-5-5", effort="medium"):
         self.model, self.effort = model, effort
-        # A neutral directory, so no project instructions or memory reach the model.
-        self.cwd = tempfile.mkdtemp(prefix="los-claude-")
+
+    def describe(self):
+        """How a program on this machine reaches this model, for a model that has to be told."""
+        return (f'{self.model}, reached by running the program: claude -p --safe-mode --model {self.model} '
+                '--tools "" --no-session-persistence, with the message on standard input and the answer on '
+                "standard output")
 
     def complete(self, system, user, schema):
         if not shutil.which("claude"):
@@ -34,7 +38,10 @@ class ClaudeCli:
                "--tools", "", "--no-session-persistence", "--output-format", "json",
                "--system-prompt", system, "--json-schema", json.dumps(schema)]
         start = time.time()
-        proc = subprocess.run(cmd, input=user, capture_output=True, text=True, cwd=self.cwd, timeout=300)
+        # A neutral directory, so no project instructions or memory reach the model. It is made for
+        # this call and removed after it, so nothing depends on a folder outliving a long session.
+        with tempfile.TemporaryDirectory(prefix="los-claude-") as cwd:
+            proc = subprocess.run(cmd, input=user, capture_output=True, text=True, cwd=cwd, timeout=300)
         reply = json.loads(proc.stdout)
         if reply.get("is_error"):
             raise RuntimeError(reply.get("result"))
@@ -51,6 +58,9 @@ class OpenAICompat:
 
     def __init__(self, base_url, model, extra=None):
         self.base_url, self.model, self.extra = base_url.rstrip("/"), model, extra or {}
+
+    def describe(self):
+        return f"{self.model}, behind the OpenAI chat API at {self.base_url}"
 
     def complete(self, system, user, schema):
         body = {

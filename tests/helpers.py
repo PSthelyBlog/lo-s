@@ -15,8 +15,12 @@ class Scripted:
     def __init__(self, *outputs):
         self.outputs, self.calls = list(outputs), 0
 
+    def describe(self):
+        return "a scripted model"
+
     def complete(self, system, user, schema):
         self.calls += 1
+        self.system, self.user = system, user       # what it was last asked
         output = self.outputs.pop(0)
         if isinstance(output, Exception):
             raise output

@@ -33,7 +33,8 @@ hint show the form the value takes.
 
 Write a command that is general. The queued line is one example of the need, so give the command \
 the parameters a user would reasonably vary and no more. Put it in an existing plugin when it \
-belongs with that plugin's commands.
+belongs with that plugin's commands. When notes come with the line, they say what the line \
+leaves out and what this machine has: follow them.
 
 Decline, giving the reason, when an existing command already does this (name it), when a program \
 on this machine cannot do it because it needs a service, an account or hardware that is not \
@@ -108,14 +109,16 @@ class Proposal:
         return f"{self.plugin}.{self.verb}"
 
 
-def ask(author, line, table, example=None):
-    """Ask the author model for a command that would handle the queued line."""
+def ask(author, line, table, example=None, notes=None):
+    """Ask the author model for a command that would handle the queued line. `notes` say what
+    the line leaves out, when the need was queued through `delegate`."""
     system = BRIEF + "\nExisting commands, one per line as: name | what it does | parameters\n" + table_text(table)
     example = pathlib.Path(example) if example else None
     if example and (example / "commands.py").exists():
         system += (f"\n\nAn existing plugin, as an example of the style.\n\nplugin.toml:\n"
                    f"{(example / 'plugin.toml').read_text()}\ncommands.py:\n{(example / 'commands.py').read_text()}")
-    output, _ = complete_valid(author, system, f"The queued line: {line}", SCHEMA)
+    user = f"The queued line: {line}" + (f"\nNotes on what is wanted: {notes}" if notes else "")
+    output, _ = complete_valid(author, system, user, SCHEMA)
     if output["decision"] == "decline":
         return Proposal(output["reason"], declined=True)
     if "command" not in output:
@@ -230,13 +233,14 @@ def render(proposal):
     return "\n".join(lines)
 
 
-def install(proposal, plugin_dir, line, author):
+def install(proposal, plugin_dir, line, author, notes=None):
     """Write the proposal as a plugin directory of its own. Returns the directory."""
     folder = pathlib.Path(plugin_dir) / proposal.name
     folder.mkdir()
     quoted = json.dumps     # a JSON string is also a valid TOML string
     manifest = [f"name = {quoted(proposal.plugin)}", "",
-                "[origin]", f"need = {quoted(line)}", f"written_by = {quoted(author.model)}",
+                "[origin]", f"need = {quoted(line)}", *([f"notes = {quoted(notes)}"] if notes else []),
+                f"written_by = {quoted(author.model)}",
                 f"provider = {quoted(author.provider)}", f"date = {quoted(datetime.date.today().isoformat())}", "",
                 f"[commands.{proposal.verb}]", f"description = {quoted(proposal.description)}",
                 f"effect = {quoted(proposal.effect)}", f"[commands.{proposal.verb}.params]"]
