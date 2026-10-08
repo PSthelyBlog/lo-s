@@ -21,8 +21,10 @@ def recall(table_version):
     return settled
 
 
-def carry(old_version, new_version):
+def carry(old_version, new_version, leave_out=()):
     """Stamp the lines settled under the old table for the new one. Only call this once each of
-    them has been checked against the new table."""
-    for label in recall(old_version).values():
-        state.append("labels", {**label, "table": new_version, "carried_from": old_version})
+    them has been checked against the new table. The lines in `leave_out` failed that check: they
+    stay settled for the old table and have to be settled again for the new one."""
+    for line, label in recall(old_version).items():
+        if line not in leave_out:
+            state.append("labels", {**label, "table": new_version, "carried_from": old_version})

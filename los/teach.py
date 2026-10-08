@@ -3,7 +3,8 @@
 The author model returns text only: a command's description and the source of its module. Nothing
 here trusts that text. `check` reads the code without running it, `install` writes it into a
 plugin directory of its own, and the shell asks the user before installing and tests the result
-afterwards.
+afterwards. When that test fails, `revise` asks the author for other words in the command table,
+and the code stays as the user read it.
 """
 import ast
 import dataclasses
@@ -61,7 +62,49 @@ most cautious one that applies.
 The user reads your code before it is installed, so keep it short and plain.
 """
 
+REVISE = """\
+You wrote a command for lo-s, a command-line operating system, and the user agreed to install \
+it. It then failed the acceptance check. Reword its entry in the command table so that it \
+passes, or decline if no wording would.
+
+The check. A user types a command directly or types plain language. For plain language a small \
+local model reads the command table (each command's name, one-line description and parameter \
+names with short hints) and picks a command, or says that nothing fits. That model sees nothing \
+but the table. Once a command is installed, the local model is asked again every line the user \
+accepted a command for before, and the line your command was written for. Each earlier line has \
+to reach the command it reached before, and the line of the need has to reach yours. You are \
+told which lines did not.
+
+What you can change. The description, and the hints of the parameters the command already has. \
+Its name, its parameters, its effect and its code stay as they are, because the user has read \
+them, so the description has to stay true to what the code does. Say what the command is for in \
+words a user would use. Where a line went astray, say plainly what the command is not for, and \
+name the command that is for it. Keep the description to one or two sentences, because the \
+local model reads the whole table for every line. Give a hint only for a parameter whose hint \
+you change. Descriptions listed as tried before failed the check too, so do not go back to them.
+
+Decline, giving the reason, when no wording would do it. One case is an earlier line that has \
+become ambiguous now that your command exists, which is likely when a rewording aimed at that \
+line has already failed: say so, and the user can decide to stop remembering the line. Another \
+is a fault in the name or the parameters.
+
+Always give reason: one or two plain sentences for the user, saying what you changed and why, \
+or why nothing would help.
+"""
+
 TEXT = {"type": "string"}
+HINTS = {"type": "array", "items": {
+    "type": "object", "additionalProperties": False, "required": ["name", "hint"],
+    "properties": {"name": TEXT, "hint": TEXT}}}
+REVISION = {
+    "type": "object", "additionalProperties": False, "required": ["decision", "reason"],
+    "properties": {
+        "decision": {"type": "string", "enum": ["reword", "decline"]},
+        "reason": TEXT,
+        "description": TEXT,
+        "params": HINTS,
+    },
+}
 SCHEMA = {
     "type": "object", "additionalProperties": False, "required": ["decision", "reason"],
     "properties": {
@@ -73,9 +116,7 @@ SCHEMA = {
             "properties": {
                 "plugin": TEXT, "verb": TEXT, "description": TEXT,
                 "effect": {"type": "string", "enum": list(plugins.EFFECTS)},
-                "params": {"type": "array", "items": {
-                    "type": "object", "additionalProperties": False, "required": ["name", "hint"],
-                    "properties": {"name": TEXT, "hint": TEXT}}},
+                "params": HINTS,
                 "code": TEXT,
             },
         },
@@ -127,6 +168,37 @@ def ask(author, line, table, example=None, notes=None):
     return Proposal(output["reason"], False, command["plugin"], command["verb"], command["description"],
                     command["effect"], {param["name"]: param["hint"] for param in command["params"]},
                     command["code"])
+
+
+def revise(author, proposal, line, table, moved, missed, notes=None, tried=()):
+    """Ask the author model to reword a command that failed the acceptance check. `moved` holds
+    the settled lines that no longer reach their command and `missed` the need's own line when it
+    does not reach the new one, each as (line, the command it should reach, what it reaches now).
+    `tried` are the descriptions it had before, which failed as well. Only the description and
+    the hints can change: the code is the code the user read."""
+    system = REVISE + "\nThe other commands, one per line as: name | what it does | parameters\n" + table_text(table)
+    command = plugins.Command(proposal.name, proposal.description, proposal.params, proposal.effect)
+    found = [f"- \"{text}\": the user accepted {expected} for this line. With your command in the table the "
+             f"local model picks {now or 'nothing'}." for text, expected, now in moved]
+    found += [f"- \"{text}\": this is the line of the need and has to reach {expected}. The local model picks "
+              f"{now or 'nothing'}." for text, expected, now in missed]
+    user = (f"The queued line: {line}" + (f"\nNotes on what is wanted: {notes}" if notes else "") +
+            f"\n\nYour command, as the table shows it:\n{table_text({command.name: command})}\n"
+            f"Its effect is {proposal.effect}. Its code:\n\n{proposal.code.rstrip()}\n\n" +
+            "".join(f"A description tried before, which failed the check too: {earlier}\n" for earlier in tried) +
+            "What the check found with the description it has now:\n" + "\n".join(found))
+    output, _ = complete_valid(author, system, user, REVISION)
+    if output["decision"] == "decline":
+        return dataclasses.replace(proposal, reason=output["reason"], declined=True)
+    hints = {param["name"]: param["hint"] for param in output.get("params", [])}
+    unknown = sorted(set(hints) - set(proposal.params))
+    if unknown:
+        raise RuntimeError(f"it gave a hint for a parameter {proposal.name} does not have: {', '.join(unknown)}")
+    revised = dataclasses.replace(proposal, reason=output["reason"], params={**proposal.params, **hints},
+                                  description=output.get("description") or proposal.description)
+    if (revised.description, revised.params) == (proposal.description, proposal.params):
+        raise RuntimeError("it changed neither the description nor a hint")
+    return revised
 
 
 def check(proposal, table):
@@ -221,16 +293,19 @@ def abilities(code):
     return sorted(modules - {"los"}), found
 
 
+def entry(proposal):
+    """The proposal's entry in the command table, as the user sees it: all the dispatch model gets."""
+    width = max(map(len, proposal.params), default=0)
+    return "\n".join([f"{proposal.name}  {proposal.description}  (effect: {proposal.effect})"] +
+                     [f"  --{name.replace('_', '-'):{width}}  {hint}" for name, hint in proposal.params.items()])
+
+
 def render(proposal):
     """The proposal as the user sees it before deciding."""
-    width = max(map(len, proposal.params), default=0)
     modules, found = abilities(proposal.code)
-    lines = [f"{proposal.name}  {proposal.description}  (effect: {proposal.effect})"]
-    lines += [f"  --{name.replace('_', '-'):{width}}  {hint}" for name, hint in proposal.params.items()]
-    lines += [f"Why: {proposal.reason}",
-              f"Imports: {', '.join(modules) or 'nothing'}. It {', '.join(found) or 'only computes'}.",
-              "", proposal.code.rstrip(), ""]
-    return "\n".join(lines)
+    return "\n".join([entry(proposal), f"Why: {proposal.reason}",
+                      f"Imports: {', '.join(modules) or 'nothing'}. It {', '.join(found) or 'only computes'}.",
+                      "", proposal.code.rstrip(), ""])
 
 
 def install(proposal, plugin_dir, line, author, notes=None):

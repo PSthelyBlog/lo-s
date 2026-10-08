@@ -42,6 +42,22 @@ BUILTINS = {
 }
 
 
+@dataclasses.dataclass
+class Check:
+    """What the acceptance check found for a newly installed command. Nothing, when it passed.
+    A line is held as (the line, the command it should reach, the command it reaches now or None)."""
+    broken: str = ""            # the new module does not load
+    unasked: str = ""           # the model that reads plain language could not be asked
+    moved: list = dataclasses.field(default_factory=list)       # lines settled before that go elsewhere now
+    missed: list = dataclasses.field(default_factory=list)      # the need's own line, when it goes elsewhere
+
+    def failures(self):
+        return ([f"it does not load: {self.broken}"] if self.broken else []) + \
+            [f"\"{line}\" used to reach {was} and would now reach {now or 'nothing'}" for line, was, now in self.moved] + \
+            [f"\"{line}\" reaches {now or 'nothing'}, not {new}" for line, new, now in self.missed] + \
+            ([f"the check needs the model that reads plain language: {self.unasked}"] if self.unasked else [])
+
+
 class Shell:
     def __init__(self, table, model, ask=input, out=print, author=None, plugin_dir=None, decoder=None):
         self.table, self.model, self.ask, self.out = table, model, ask, out
@@ -278,6 +294,18 @@ class Shell:
             return False
         return default if not answer else answer.startswith("y")
 
+    def choose(self, ways, otherwise):
+        """Offer ways forward, each under a letter. Returns the letter the user typed, or None for
+        anything else, which stands for `otherwise`."""
+        if not ways:
+            return None
+        self.out("\n".join(f"  {key:5}  {what}" for key, what in [*ways.items(), ("Enter", otherwise)]))
+        try:
+            answer = self.ask(f"[{'/'.join(ways)}/Enter] ").strip().lower()
+        except EOFError:  # nobody is there to choose
+            return None
+        return answer[:1] if answer[:1] in ways else None
+
     def numbered_need(self, verb, words):
         """The queue and the need a builtin was pointed at, or None after explaining the usage."""
         waiting = state.read("needs")
@@ -357,7 +385,7 @@ class Shell:
 
     def teach(self, words):
         """Ask the author model for a command that handles a queued need, and install it if the
-        user agrees and the result passes the acceptance check."""
+        user agrees."""
         waiting, need = self.numbered_need("teach", words)
         if not need:
             return
@@ -384,45 +412,112 @@ class Shell:
             self.out("Not installed. The need stays queued.")
             return
 
-        folder = teach.install(proposal, self.plugin_dir, need["line"], self.author, need.get("notes"))
-        failures = self.acceptance(folder, proposal, need["line"])
-        if failures:
-            shutil.rmtree(folder)
-            self.out(f"{proposal.name} was removed again, because it failed the acceptance check:\n" +
-                     "\n".join(f"  - {failure}" for failure in failures) + "\nThe need stays queued.")
-            return
+        self.install(proposal, need, waiting)
+
+    def install(self, proposal, need, waiting):
+        """Install a command the user agreed to, and hold it to the acceptance check. One that fails
+        is not thrown away unasked, because writing it cost a call to the author: the user chooses
+        between other words for it, no longer remembering the lines that moved, and removing it."""
+        line, notes = need["line"], need.get("notes")
+        folder = teach.install(proposal, self.plugin_dir, line, self.author, notes)
+        found, forgotten, tried = None, [], []      # tried: the descriptions that failed before this one
+        try:
+            while True:
+                if found is None:       # not checked since it was installed or reworded
+                    found = self.acceptance(proposal, line)
+                    if not found.failures():
+                        break
+                    self.out(f"{proposal.name} did not pass the acceptance check:\n" +
+                             "\n".join(f"  - {failure}" for failure in found.failures()))
+                choice = self.choose(self.ways(found), "remove it again")
+                if choice == "t":
+                    found = None
+                elif choice == "k":
+                    forgotten = [earlier for earlier, _, _ in found.moved]
+                    break
+                elif choice == "r":
+                    revised = self.reword(proposal, need, found, tried)
+                    if revised:
+                        shutil.rmtree(folder)
+                        folder = teach.install(revised, self.plugin_dir, line, self.author, notes)
+                        tried, proposal, found = tried + [proposal.description], revised, None
+                else:
+                    shutil.rmtree(folder)
+                    self.out(f"{proposal.name} was removed again. The need stays queued.")
+                    return
+        except BaseException:   # Ctrl-C at a question or during the check: nothing unchecked stays installed
+            shutil.rmtree(folder, ignore_errors=True)
+            raise
+
         earlier_version = self.table_version
         self.table = plugins.load(self.plugin_dir)
         self.table_version = plugins.version(self.table)
-        # The check just replayed every settled line against the new table, so they stay settled.
-        memory.carry(earlier_version, self.table_version)
+        # The check just asked every settled line against the new table. Those that still reach
+        # their command stay settled. The ones the user gave up are asked about again.
+        memory.carry(earlier_version, self.table_version, leave_out=forgotten)
         state.replace("needs", [other for other in waiting if other is not need])
-        state.append("authored", {"date": datetime.date.today().isoformat(), "line": need["line"],
+        state.append("authored", {"date": datetime.date.today().isoformat(), "line": line,
                                   "command": proposal.name, "provider": self.author.provider,
-                                  "model": self.author.model, "table": self.table_version})
+                                  "model": self.author.model, "table": self.table_version,
+                                  **({"reworded": len(tried)} if tried else {}),
+                                  **({"forgotten": forgotten} if forgotten else {})})
+        if forgotten:
+            self.out("No longer remembered: " + ", ".join(f'"{earlier}"' for earlier in forgotten) +
+                     f". The model is asked the next time you type {'it' if len(forgotten) == 1 else 'one of them'}.")
         self.out(f"Installed {proposal.name} in {folder}. Delete that folder to remove it.")
 
-    def acceptance(self, folder, proposal, line):
+    def acceptance(self, proposal, line):
         """What must hold before a new command stays: it loads, the lines the user has already
         accepted still reach the same commands, and the need's own line reaches the new one."""
         try:
             table = plugins.load(self.plugin_dir)
         except Exception as error:  # anything the new module does wrong while loading
-            return [f"it does not load: {error}"]
+            return Check(broken=str(error))
         accepted = {earlier: label["command"] for earlier, label in memory.recall(self.table_version).items()}
         self.out(f"Checking it against {len(accepted)} line(s) you accepted before, and the need itself.")
-        failures = []
+        found = Check()
         try:
             for earlier, expected in accepted.items():
                 now = dispatch.ask(self.model, table, earlier).command
                 if now != expected:
-                    failures.append(f"\"{earlier}\" used to reach {expected} and would now reach {now or 'nothing'}")
+                    found.moved.append((earlier, expected, now))
             now = dispatch.ask(self.model, table, line).command
             if now != proposal.name:
-                failures.append(f"\"{line}\" reaches {now or 'nothing'}, not {proposal.name}")
+                found.missed.append((line, proposal.name, now))
         except (ModelUnavailable, RuntimeError) as error:
-            failures.append(f"the check needs the model that reads plain language: {error}")
-        return failures
+            found.unasked = str(error)
+        return found
+
+    def ways(self, found):
+        """What the user can do about a failed check, by the letter that picks it."""
+        if found.broken:
+            return {}
+        if found.unasked:       # whatever else it found, the check was not finished
+            return {"t": "try the check again"}
+        ways = {"r": f"have {self.author.model} reword its description, then check again"}
+        if not found.missed:    # forgetting earlier lines does not make the need's own line arrive
+            ways["k"] = "keep it, and stop remembering " + \
+                ("that line" if len(found.moved) == 1 else f"those {len(found.moved)} lines")
+        return ways
+
+    def reword(self, proposal, need, found, tried):
+        """Ask the author for other words for a command that failed the check. Returns the proposal
+        with them once the user has seen them and agreed, or None."""
+        self.out(f"Asking {self.author.model} to reword {proposal.name}.")
+        try:
+            revised = teach.revise(self.author, proposal, need["line"], self.table, found.moved, found.missed,
+                                   need.get("notes"), tried)
+        except (ModelUnavailable, RuntimeError) as error:
+            self.out(f"No new wording came back: {error}")
+            return None
+        if revised.declined:
+            self.out(f"It declined: {revised.reason}")
+            return None
+        self.out(f"{teach.entry(revised)}\nWhy: {revised.reason}\nThe code stays as you read it.")
+        if not self.confirm("Check it again with this description?", default=True):
+            self.out(f"{proposal.name} keeps the description it had.")
+            return None
+        return revised
 
     def help(self, names):
         if not names:

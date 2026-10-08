@@ -61,7 +61,9 @@ The transcript is shortened; paths in the real output are absolute.
 - **`teach NUMBER`** asks a stronger "teacher" model to write a command for a queued need. You see
   the whole proposal, code included, and nothing is installed unless you agree. The new command
   is then checked: the lines you accepted before must still reach the same commands, and the
-  need's own line must reach the new one. If not, it is removed again.
+  need's own line must reach the new one. If not, you choose. The teacher can reword the
+  command's description, after which the check runs again. The command can stay, and the lines
+  that moved are no longer remembered. Or it is removed. The code you read stays the same.
 - **`delegate WHAT YOU NEED`** is for when you do not know what to type. You say what you need in
   your own words, and the teacher model, which is told how lo-s works, answers with what to send:
   a command that exists, or a need for a new one, written as an example line plus notes for
@@ -127,7 +129,8 @@ lo-s runs commands on your real machine.
 - `fs.move` is the only starter command that changes files, and it refuses to overwrite.
 - `teach`, `rule` and `delegate` send text to the teacher model: the line or your words, the
   command table, and for `delegate` also which models your machine is set up with and where they
-  are reached. With the default setup that is Anthropic, through your own `claude` login.
+  are reached. A rewording after a failed check also sends the earlier lines of yours that went
+  astray. With the default setup that is Anthropic, through your own `claude` login.
 - The model server listens on this machine only, and only pages served from this machine may read
   its answers in a browser.
 - Local models make mistakes. In the experiment, one turned "what's listening on port 5432" into a

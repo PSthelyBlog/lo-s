@@ -28,6 +28,12 @@ class RecallTest(StateCase):
         self.assertEqual(list(memory.recall("t2")), ["list it"])
         self.assertEqual(memory.recall("t2")["list it"]["carried_from"], "t1")
 
+    def test_carry_can_leave_lines_settled_for_the_old_table_only(self):
+        self.label("list it", "accepted")
+        self.label("show it", "accepted")
+        memory.carry("t1", "t2", leave_out=["show it"])
+        self.assertEqual((list(memory.recall("t1")), list(memory.recall("t2"))), (["list it", "show it"], ["list it"]))
+
 
 class RememberedLinesTest(ShellCase):
     def test_an_accepted_reading_line_is_answered_from_memory_without_asking(self):
