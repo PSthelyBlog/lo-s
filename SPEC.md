@@ -78,9 +78,14 @@ design, not yet confirmed) or **Open**.
 - **Proposed.** Before the user is asked, the proposed code is read without being run. It must
   define exactly the declared function, run nothing when imported, import only the standard
   library, and use no dynamic code. The user is shown what its imports let it do.
-- **Proposed.** After installing, a new command must pass an acceptance check or it is removed:
-  lines the user accepted before still reach the same commands, and the need's own line reaches
-  the new one.
+- **Proposed.** After installing, a new command must pass an acceptance check: lines the user
+  accepted before still reach the same commands, and the need's own line reaches the new one.
+- **Proposed.** A command that fails the check is not removed unasked, because writing it cost a
+  teacher call. The user chooses. The teacher can reword the command's description and hints,
+  told which lines went astray and which descriptions already failed, and the check runs again.
+  Or the command stays, and the earlier lines that moved are no longer remembered. Or it is
+  removed. The code the user read does not change on the way. A check that could not be made,
+  because the student did not answer, can be tried again.
 - **Proposed.** A command moves through three stages: written by the teacher, decoded by the local
   model, then compiled to plain code once its decodes stop varying.
 
@@ -122,7 +127,8 @@ design, not yet confirmed) or **Open**.
   queuing the line as a need or by typing `wrong`, unsettles it.
 - **Proposed.** A settled line is answered from memory for as long as the command table has the
   version it was settled against. When a command is added, the acceptance check replays every
-  settled line, and those lines are carried to the new version.
+  settled line, and those that still reach their command are carried to the new version. A line
+  the user gave up so that a command could stay is settled for the old version only.
 
 ## Safety
 
@@ -141,6 +147,11 @@ design, not yet confirmed) or **Open**.
   are used.
 - `teach NUMBER` (`los/teach.py`): the author model writes a command for a queued need, the user
   approves it, and the acceptance check decides whether it stays. `forget NUMBER` drops a need.
+  When the check fails, the user chooses between a rewording by the author, no longer
+  remembering the lines that moved, and removal. Tried on 2026-10-08 on a weather command that
+  had been removed the day before over one remembered line, a question about the temperature.
+  The first rewording failed on the same line. The second, which was told so, took the word
+  temperature out of the weather entry and passed, with all 20 remembered lines unchanged.
 - `delegate WHAT YOU NEED` (`los/delegate.py`): the author model answers with a command to run, a
   need to queue with notes for the author, a question, or that lo-s cannot do it. `delegate NUMBER`
   does the same for a need already queued. A line that gets queued now says so. Tried on
@@ -180,7 +191,8 @@ design, not yet confirmed) or **Open**.
   asked; a sandbox or enforced permissions for written commands; tests of what a written command
   does; one commit per install; optimizations proposed by a model; a search that uses the user's own
   labels as its record; sending the shell's own words, such as `needs` or `wrong`, through
-  `delegate`; answering the teacher's question without typing the request again.
+  `delegate`; answering the teacher's question without typing the request again; changing the
+  name or the parameters of a command that fails the acceptance check.
 
 ## Open
 
